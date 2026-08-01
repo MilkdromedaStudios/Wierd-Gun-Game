@@ -122,5 +122,3 @@ Named honestly, because the design is settled but the code is not written:
 Blockbench). The Witness is intended to be assembled at runtime from block-display
 entities using each player's own mined blocks, so its file is a silhouette reference
 rather than a rig.
-
-<!-- CI trigger check -->
