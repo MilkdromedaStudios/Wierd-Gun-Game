@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    name: Build and test
+    name: Build mod
     runs-on: ubuntu-latest
 
     steps:
@@ -23,14 +23,16 @@ jobs:
         with:
           java-version: '25'
           distribution: temurin
-          cache: maven
 
-      - name: Build and run tests
-        run: mvn -B --no-transfer-progress verify
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
 
-      - name: Upload plugin jar
+      - name: Build
+        run: gradle build --no-daemon
+
+      - name: Upload mod jar
         uses: actions/upload-artifact@v4
         with:
-          name: WeirdGunGame
-          path: target/WeirdGunGame-*.jar
+          name: Ledger
+          path: build/libs/ledger-*.jar
           if-no-files-found: error

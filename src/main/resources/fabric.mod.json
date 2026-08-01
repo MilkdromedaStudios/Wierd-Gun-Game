@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "ledger",
+  "version": "${version}",
+  "name": "Ledger",
+  "description": "Every block you mine is recorded. Something is keeping the books, and eventually it would like a word.",
+  "authors": ["MilkdromedaStudios"],
+  "contact": {
+    "homepage": "https://github.com/MilkdromedaStudios/Wierd-Gun-Game",
+    "sources": "https://github.com/MilkdromedaStudios/Wierd-Gun-Game"
+  },
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.milkdromeda.ledger.Ledger"]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.0",
+    "minecraft": "~26.2",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}

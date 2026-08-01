@@ -1,0 +1,630 @@
+{
+  "meta": {
+    "format_version": "4.10",
+    "model_format": "free",
+    "box_uv": false
+  },
+  "name": "ledger_camera",
+  "model_identifier": "ledger_camera",
+  "visible_box": [
+    4,
+    4,
+    0
+  ],
+  "variable_placeholders": "",
+  "variable_placeholder_buttons": [],
+  "timeline_setups": [],
+  "unhandled_root_fields": {},
+  "resolution": {
+    "width": 32,
+    "height": 32
+  },
+  "elements": [
+    {
+      "name": "mount_plate",
+      "box_uv": false,
+      "rescale": false,
+      "locked": false,
+      "render_order": "default",
+      "allow_mirror_modeling": true,
+      "from": [
+        6,
+        0,
+        6
+      ],
+      "to": [
+        10,
+        1,
+        10
+      ],
+      "autouv": 0,
+      "color": 0,
+      "origin": [
+        8.0,
+        0.5,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": 0
+        }
+      },
+      "uuid": "78c10301-defb-4a22-87a9-e0464aa82e7b"
+    },
+    {
+      "name": "mount_arm",
+      "box_uv": false,
+      "rescale": false,
+      "locked": false,
+      "render_order": "default",
+      "allow_mirror_modeling": true,
+      "from": [
+        7.25,
+        1,
+        7.25
+      ],
+      "to": [
+        8.75,
+        4,
+        8.75
+      ],
+      "autouv": 0,
+      "color": 0,
+      "origin": [
+        8.0,
+        2.5,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            8,
+            2,
+            11
+          ],
+          "texture": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            8,
+            2,
+            11
+          ],
+          "texture": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            8,
+            2,
+            11
+          ],
+          "texture": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            8,
+            2,
+            11
+          ],
+          "texture": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            8,
+            2,
+            11
+          ],
+          "texture": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            8,
+            2,
+            11
+          ],
+          "texture": 0
+        }
+      },
+      "uuid": "84d96fa2-8043-4285-b16f-fdb3309a0099"
+    },
+    {
+      "name": "housing",
+      "box_uv": false,
+      "rescale": false,
+      "locked": false,
+      "render_order": "default",
+      "allow_mirror_modeling": true,
+      "from": [
+        5,
+        4,
+        5
+      ],
+      "to": [
+        11,
+        9,
+        11
+      ],
+      "autouv": 0,
+      "color": 0,
+      "origin": [
+        8.0,
+        6.5,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            8,
+            0,
+            14,
+            5
+          ],
+          "texture": 0
+        },
+        "east": {
+          "uv": [
+            8,
+            0,
+            14,
+            5
+          ],
+          "texture": 0
+        },
+        "south": {
+          "uv": [
+            8,
+            0,
+            14,
+            5
+          ],
+          "texture": 0
+        },
+        "west": {
+          "uv": [
+            8,
+            0,
+            14,
+            5
+          ],
+          "texture": 0
+        },
+        "up": {
+          "uv": [
+            8,
+            0,
+            14,
+            5
+          ],
+          "texture": 0
+        },
+        "down": {
+          "uv": [
+            8,
+            0,
+            14,
+            5
+          ],
+          "texture": 0
+        }
+      },
+      "uuid": "75b84cbc-bf09-4b36-acf9-9228a19e4ee3"
+    },
+    {
+      "name": "lens_barrel",
+      "box_uv": false,
+      "rescale": false,
+      "locked": false,
+      "render_order": "default",
+      "allow_mirror_modeling": true,
+      "from": [
+        6.5,
+        5.25,
+        2.5
+      ],
+      "to": [
+        9.5,
+        8.25,
+        5
+      ],
+      "autouv": 0,
+      "color": 0,
+      "origin": [
+        8.0,
+        6.75,
+        3.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            12,
+            3,
+            15
+          ],
+          "texture": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            12,
+            3,
+            15
+          ],
+          "texture": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            12,
+            3,
+            15
+          ],
+          "texture": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            12,
+            3,
+            15
+          ],
+          "texture": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            12,
+            3,
+            15
+          ],
+          "texture": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            12,
+            3,
+            15
+          ],
+          "texture": 0
+        }
+      },
+      "uuid": "fe5806a6-9446-4ba3-a6b3-7c9741c2a577"
+    },
+    {
+      "name": "lens_glass",
+      "box_uv": false,
+      "rescale": false,
+      "locked": false,
+      "render_order": "default",
+      "allow_mirror_modeling": true,
+      "from": [
+        7,
+        5.75,
+        2
+      ],
+      "to": [
+        9,
+        7.75,
+        2.5
+      ],
+      "autouv": 0,
+      "color": 0,
+      "origin": [
+        8.0,
+        6.75,
+        2.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            16,
+            0,
+            18,
+            2
+          ],
+          "texture": 0
+        },
+        "east": {
+          "uv": [
+            16,
+            0,
+            18,
+            2
+          ],
+          "texture": 0
+        },
+        "south": {
+          "uv": [
+            16,
+            0,
+            18,
+            2
+          ],
+          "texture": 0
+        },
+        "west": {
+          "uv": [
+            16,
+            0,
+            18,
+            2
+          ],
+          "texture": 0
+        },
+        "up": {
+          "uv": [
+            16,
+            0,
+            18,
+            2
+          ],
+          "texture": 0
+        },
+        "down": {
+          "uv": [
+            16,
+            0,
+            18,
+            2
+          ],
+          "texture": 0
+        }
+      },
+      "uuid": "9321fb9f-ea02-42fc-8e31-65efce3f459e"
+    },
+    {
+      "name": "status_light",
+      "box_uv": false,
+      "rescale": false,
+      "locked": false,
+      "render_order": "default",
+      "allow_mirror_modeling": true,
+      "from": [
+        10.5,
+        8,
+        6.5
+      ],
+      "to": [
+        11.25,
+        8.75,
+        7.25
+      ],
+      "autouv": 0,
+      "color": 0,
+      "origin": [
+        10.875,
+        8.375,
+        6.875
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            20,
+            0,
+            21,
+            1
+          ],
+          "texture": 0
+        },
+        "east": {
+          "uv": [
+            20,
+            0,
+            21,
+            1
+          ],
+          "texture": 0
+        },
+        "south": {
+          "uv": [
+            20,
+            0,
+            21,
+            1
+          ],
+          "texture": 0
+        },
+        "west": {
+          "uv": [
+            20,
+            0,
+            21,
+            1
+          ],
+          "texture": 0
+        },
+        "up": {
+          "uv": [
+            20,
+            0,
+            21,
+            1
+          ],
+          "texture": 0
+        },
+        "down": {
+          "uv": [
+            20,
+            0,
+            21,
+            1
+          ],
+          "texture": 0
+        }
+      },
+      "uuid": "5e8f4340-2a33-41b7-94ab-78eadcd80bc0"
+    },
+    {
+      "name": "antenna",
+      "box_uv": false,
+      "rescale": false,
+      "locked": false,
+      "render_order": "default",
+      "allow_mirror_modeling": true,
+      "from": [
+        7.5,
+        9,
+        7.5
+      ],
+      "to": [
+        8.5,
+        13,
+        8.5
+      ],
+      "autouv": 0,
+      "color": 0,
+      "origin": [
+        8.0,
+        11.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            20,
+            1,
+            24
+          ],
+          "texture": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            20,
+            1,
+            24
+          ],
+          "texture": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            20,
+            1,
+            24
+          ],
+          "texture": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            20,
+            1,
+            24
+          ],
+          "texture": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            20,
+            1,
+            24
+          ],
+          "texture": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            20,
+            1,
+            24
+          ],
+          "texture": 0
+        }
+      },
+      "uuid": "8ecc132a-88a1-4a8f-859d-8b9644ff7514"
+    }
+  ],
+  "outliner": [
+    "78c10301-defb-4a22-87a9-e0464aa82e7b",
+    "84d96fa2-8043-4285-b16f-fdb3309a0099",
+    "75b84cbc-bf09-4b36-acf9-9228a19e4ee3",
+    "fe5806a6-9446-4ba3-a6b3-7c9741c2a577",
+    "9321fb9f-ea02-42fc-8e31-65efce3f459e",
+    "5e8f4340-2a33-41b7-94ab-78eadcd80bc0",
+    "8ecc132a-88a1-4a8f-859d-8b9644ff7514"
+  ],
+  "textures": [
+    {
+      "path": "",
+      "name": "camera",
+      "folder": "block",
+      "namespace": "ledger",
+      "id": "0",
+      "particle": true,
+      "render_mode": "normal",
+      "render_sides": "auto",
+      "frame_time": 1,
+      "frame_order_type": "loop",
+      "frame_order": "",
+      "frame_interpolate": false,
+      "visible": true,
+      "internal": true,
+      "saved": false,
+      "uuid": "340e4bc2-45d8-46a9-94df-4290cc8bc711",
+      "relative_path": "block/camera.png",
+      "source": ""
+    }
+  ],
+  "description": "Ledger surveillance camera. Lens faces -Z at rest; the plugin yaws the whole model toward the nearest player."
+}
