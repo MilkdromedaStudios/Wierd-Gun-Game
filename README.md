@@ -21,8 +21,9 @@ Requires **JDK 25** (Minecraft 26.2 runs on Java 25).
 ./gradlew build      # or: gradle build
 ```
 
-The mod lands at `build/libs/ledger-1.0.0.jar`. Drop it in your server's `mods/` folder
-alongside Fabric API. Ledger is entirely server-side logic — no client install needed.
+Finished jars land in **`builds/`** — `builds/ledger-1.0.0.jar`. Drop it in your server's
+`mods/` folder alongside Fabric API. Ledger is entirely server-side logic, so no client
+install is needed.
 
 CI builds and tests on every push (`.github/workflows/build.yml`).
 
@@ -76,6 +77,31 @@ budget are slowed down instead.
 1,000,000 possible guns** and asserts every one respects every cap.
 
 ---
+
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| `/guns`, `/bench`, `/gunbench` | **Open the gun bench.** Short aliases for the main screen |
+| `/ledger bench` | The same menu |
+| `/ledger gun <preset>` | Merge and take a ready-made gun (`rpg`, `ak`, `sniper`, `maxigun`…) |
+| `/ledger part <id>` | Fit one part onto your bench |
+| `/ledger random` | Roll all six sections and take the result |
+| `/ledger parts` | List every part id |
+| `/ledger record` | Show what Earth has written down about you |
+
+## Merging
+
+The bench is a six-row chest menu with the slots used as buttons. Pick a part for each of
+the six sections, watch the preview update, then press **MERGE INTO GUN**: the six parts'
+effects are applied in section order, the balance pass runs once over the result, and out
+comes a single item that remembers which parts made it.
+
+Only the part ids and the round count are stored on the item; every stat is recomputed
+from the parts on demand, so rebalancing a part updates every gun already in the world.
+
+Nothing in the menu is a real item — clicks are intercepted before they reach the
+container and quick-move is disabled, so buttons cannot be pulled out or duplicated.
 
 ## Not built yet
 

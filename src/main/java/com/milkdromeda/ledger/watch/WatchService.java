@@ -12,7 +12,9 @@ import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.LevelResource;
 
@@ -42,11 +44,17 @@ public final class WatchService {
     /** How often records are flushed, in ticks. Players break a lot of blocks; disk is slow. */
     private static final int AUTOSAVE_TICKS = 20 * 60 * 2;
 
+    /**
+     * Furthest a player can plausibly travel in one sample under their own
+     * power. Anything beyond this is a teleport and is not credited.
+     */
+    private static final double MAX_CREDIBLE_STEP = 80.0;
+
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Type RECORD_MAP = new TypeToken<Map<String, StoredRecord>>() { }.getType();
 
     private final Map<UUID, WatchRecord> records = new HashMap<>();
-    private final Map<UUID, double[]> lastSampled = new HashMap<>();
+    private final Map<UUID, Sample> lastSampled = new HashMap<>();
 
     private MinecraftServer server;
     private Path file;
@@ -86,30 +94,40 @@ public final class WatchService {
             }
         });
 
+        // Only actual block items count as placing. Opening a door, flipping a
+        // lever or hitting a block with a sword all raise this event too, and
+        // counting those as "placed" made the record quietly wrong.
         UseBlockCallback.EVENT.register((player, level, hand, hit) -> {
             if (player instanceof ServerPlayer serverPlayer) {
                 ItemStack stack = player.getItemInHand(hand);
-                if (!stack.isEmpty()) {
+                if (stack.getItem() instanceof BlockItem) {
                     of(serverPlayer).recordPlaced(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
                     dirty = true;
                 }
             }
-            return net.minecraft.world.InteractionResult.PASS;
+            return InteractionResult.PASS;
         });
 
+        // Block items are already accounted for above; counting them here too
+        // would double-count a single placement.
         UseItemCallback.EVENT.register((player, level, hand) -> {
             if (player instanceof ServerPlayer serverPlayer) {
                 ItemStack stack = player.getItemInHand(hand);
-                if (!stack.isEmpty()) {
+                if (!stack.isEmpty() && !(stack.getItem() instanceof BlockItem)) {
                     of(serverPlayer).recordUsed(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
                     dirty = true;
                 }
             }
-            return net.minecraft.world.InteractionResult.PASS;
+            return InteractionResult.PASS;
         });
 
+        // Forget a player's last position when they leave. Without this, logging
+        // back in somewhere else credits the whole distance between the two
+        // points as walked.
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server1) ->
+                lastSampled.remove(handler.getPlayer().getUUID()));
+
         ServerTickEvents.END_SERVER_TICK.register(this::onTick);
-        ServerLifecycleEvents.SERVER_STOPPING.register(stopping -> save());
     }
 
     private void onTick(MinecraftServer running) {
@@ -129,21 +147,30 @@ public final class WatchService {
      */
     private void sampleMovement(MinecraftServer running) {
         for (ServerPlayer player : running.getPlayerList().getPlayers()) {
-            double[] previous = lastSampled.put(player.getUUID(),
-                    new double[] {player.getX(), player.getZ()});
-            if (previous == null) {
+            Sample current = new Sample(player.level().dimension().toString(),
+                    player.getX(), player.getZ());
+            Sample previous = lastSampled.put(player.getUUID(), current);
+            if (previous == null || !previous.dimension().equals(current.dimension())) {
                 continue;
             }
             // Horizontal only: falling down a hole is not exploration.
-            double dx = player.getX() - previous[0];
-            double dz = player.getZ() - previous[1];
-            long blocks = (long) Math.floor(Math.sqrt(dx * dx + dz * dz));
+            double dx = current.x() - previous.x();
+            double dz = current.z() - previous.z();
+            double distance = Math.sqrt(dx * dx + dz * dz);
+            if (distance > MAX_CREDIBLE_STEP) {
+                // Ender pearl, portal or command teleport. Nobody walked that.
+                continue;
+            }
+            long blocks = (long) Math.floor(distance);
             if (blocks > 0) {
                 of(player).addWalked(blocks);
                 dirty = true;
             }
         }
     }
+
+    /** One position sample. The dimension is part of it so portals do not read as sprinting. */
+    private record Sample(String dimension, double x, double z) { }
 
     public void died(ServerPlayer player) {
         of(player).recordDeath();

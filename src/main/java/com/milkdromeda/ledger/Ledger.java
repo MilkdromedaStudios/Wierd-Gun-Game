@@ -1,5 +1,7 @@
 package com.milkdromeda.ledger;
 
+import com.milkdromeda.ledger.command.LedgerCommands;
+import com.milkdromeda.ledger.menu.BenchStore;
 import com.milkdromeda.ledger.watch.WatchService;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -20,20 +22,26 @@ public final class Ledger implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger("Ledger");
 
     private static WatchService watch;
+    private static BenchStore benches;
 
     public static WatchService watch() {
         return watch;
+    }
+
+    public static BenchStore benches() {
+        return benches;
     }
 
     @Override
     public void onInitialize() {
         watch = new WatchService();
         watch.register();
+        benches = new BenchStore();
+        LedgerCommands.register();
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             watch.load(server);
             LOGGER.info("Ledger is open. Everything from here is recorded.");
         });
-        ServerLifecycleEvents.SERVER_STOPPING.register(server -> watch.save());
     }
 }

@@ -4,7 +4,11 @@ plugins {
 }
 
 version = project.mod_version
-base { archivesName = project.archives_base_name }
+base {
+	archivesName = project.archives_base_name
+	// Finished jars land in builds/ rather than being buried in build/libs.
+	libsDirectory = layout.projectDirectory.dir("builds")
+}
 group = project.maven_group
 
 repositories {
