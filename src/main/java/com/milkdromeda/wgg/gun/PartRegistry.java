@@ -233,7 +233,7 @@ public final class PartRegistry {
                 List.of("+48 rounds", "Slow reload", "A bit heavy"),
                 s -> s.mag(48).reload(30).moveSpeed(-0.05).damage(-0.5));
 
-        add("ammo_belt", PartSection.MAGAZINE, "Ammo Belt", Material.CHAIN, Rarity.EXOTIC,
+        add("ammo_belt", PartSection.MAGAZINE, "Ammo Belt", Material.IRON_CHAIN, Rarity.EXOTIC,
                 "Feeds from a box you are dragging behind you.",
                 List.of("+138 rounds", "Brutal reload time", "Heavy and inaccurate"),
                 s -> s.mag(138).reload(90).moveSpeed(-0.12).damage(-1.5).spread(1));

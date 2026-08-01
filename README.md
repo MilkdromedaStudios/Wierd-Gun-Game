@@ -1,6 +1,6 @@
 # Weird Gun Game
 
-A Roblox-style **Weird Gun Game** for Minecraft, as a Paper plugin.
+A Roblox-style **Weird Gun Game** for **Minecraft 26.2**, as a Paper plugin.
 
 Open a chest menu, bolt together a gun from six sections — **Barrel, Core, Grip, Magazine,
 Sight, Stock** — with **10 parts each**, and go and be strange. Then start a **Superbox
@@ -8,7 +8,8 @@ tournament** and fight a boss the size of a house with whatever nonsense you jus
 
 - **60 gun parts**, 10 per section, all combinable → **1,000,000 possible guns**
 - **12 ready-made guns** including the RPG, AK, sniper, shotgun, Maxigun and explosive-bullet rifle
-- **10 melee knives** with backstabs, bleed, blink strikes and lifesteal
+- **11 melee weapons** including a **katana that deflects bullets back at whoever fired them**
+- **A real sniper scope** with a laser dot, range readout and a steadied-shot stance
 - **Superbox tournament** — a multi-round boss fight with three phases and Minibox minions
 - A **balance pass** that keeps wild builds fun instead of round-ending (see below)
 
@@ -16,14 +17,31 @@ tournament** and fight a boss the size of a house with whatever nonsense you jus
 
 ## Building
 
-Requires JDK 21 and Maven.
+Requires **JDK 25** and Maven. Minecraft 26.2 runs on Java 25, so an older JDK will not work.
 
 ```bash
 mvn package
 ```
 
 The plugin lands at `target/WeirdGunGame-1.0.0.jar`. Drop it in your server's `plugins/`
-folder and restart. Built against the Paper 1.21.8 API.
+folder and restart. Built against the **Paper 26.2** API (`26.2.build.87-stable`).
+
+Every push and pull request is built and tested by GitHub Actions
+(`.github/workflows/build.yml`), which also uploads the built jar as an artifact.
+
+### Why Paper and not Fabric
+
+Fabric was the original target for 26.2, but it is not currently buildable. Modding
+Fabric requires deobfuscation mappings for the game, and as of Minecraft 26.x there are
+none published: Mojang's version manifest for 26.1 and 26.2 ships only `client` and
+`server` downloads, having dropped the `client_mappings` / `server_mappings` entries that
+1.21.11 and earlier included, and Fabric's Yarn has no 26.x mappings either. Fabric Loom
+fails at configuration time with `Failed to find official mojang mappings for 26.2`.
+
+Paper does not need mappings — it exposes a stable, named API — so it is the only route
+to Minecraft 26.2 today. If mappings appear later, the whole `gun` package (parts, stats,
+blueprints, the balance pass) is plain Java with no server dependency and ports across
+unchanged.
 
 ---
 
@@ -48,9 +66,27 @@ folder and restart. Built against the Paper 1.21.8 API.
 | **Right-click** | Fire. Hold it down for automatics and the Maxigun |
 | **Left-click** | Aim down sights — tightens spread, zooms if the sight supports it |
 | **F** (swap hands) | Reload |
+| **Right-click** (katana) | Parry — deflects incoming bullets |
 
 Charge weapons start winding up on right-click and fire themselves when they are ready.
 Spin-up weapons need a moment of held trigger before they reach full rate.
+
+### Scoping
+
+Aiming a sight with real magnification (Sniper Scope, Thermal, Cracked Monocle) draws a
+marker at the exact point your round will land, sent only to you, along with the range and
+what you are looking at. Crouch and hold still for a second and the scope **steadies**:
+spread drops to zero, so the shot goes precisely where the dot is. Steadying removes
+spread rather than adding damage, which keeps snipers precise without letting them punch
+through the balance caps.
+
+### The katana
+
+Right-click to parry for just over a second, on a five second cooldown. Rounds arriving
+from the front are knocked straight back down their own flight path at whoever fired them,
+carrying the original gun's stats — deflect a rocket and the rocket explodes on the person
+who launched it. Only the front arc is covered, so getting shot in the back still hurts,
+and returned rounds cannot be deflected again.
 
 ---
 
@@ -64,7 +100,7 @@ Spin-up weapons need a moment of held trigger before they reach full rate.
   and weirdness score.
 - **Armoury** — 12 pre-built guns. Left-click takes one, right-click loads it into the
   bench so you can tinker with it.
-- **Knife Rack** — 10 melee sidearms.
+- **Knife Rack** — 11 melee sidearms, including the katana.
 - **Randomise** — roll all six sections at once.
 - **Assemble** — build it and put it in your inventory.
 
@@ -97,6 +133,11 @@ Googly Eyes · Eye of the Seeker (homing) · Cracked Monocle · Target Computer 
 ### Stock — stability and utility
 Wooden · Tactical · Heavy Anvil · Skeleton · Slime Pad · Rocket Booster · Cactus ·
 **Cushion (immune to your own explosions)** · Jukebox · Void
+
+### Knives
+
+Butter Knife · Combat Knife · Karambit · Butcher's Cleaver · Ender Shiv · Frost Fang ·
+Vampire Fang · Baguette · Diamond Shank · **Boxcutter (anti-Superbox)** · **Katana (parry)**
 
 ### Traits
 
@@ -160,6 +201,17 @@ mvn test
 ```
 
 ---
+
+## Known limitations
+
+- **No custom creative-inventory tab.** A server-side plugin cannot add tabs to the vanilla
+  creative menu; that needs a client mod or resource pack. Use `/wgg bench` instead.
+- **Held-trigger automatics** run on a rolling window that each right-click refreshes,
+  because Bukkit only reports a right-click on air once per click. Holding the button on a
+  block repeats naturally.
+- **No ammo bar on the item.** Guns are unbreakable so they can never be destroyed
+  mid-fight, and the client only draws a durability bar for damageable items. Ammo is shown
+  in the lore and on the action bar instead.
 
 ## Configuration
 

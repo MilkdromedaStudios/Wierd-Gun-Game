@@ -1,7 +1,7 @@
 name: WeirdGunGame
 version: '${project.version}'
 main: com.milkdromeda.wgg.WeirdGunGamePlugin
-api-version: '1.21'
+api-version: '26.2'
 authors: [MilkdromedaStudios]
 description: Roblox-style Weird Gun Game for Minecraft. Build a gun from 60 parts, then fight the Superbox.
 website: https://github.com/MilkdromedaStudios/Wierd-Gun-Game
