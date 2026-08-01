@@ -45,7 +45,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ledger-jar
-          path: builds/ledger-*.jar
+          path: |
+            builds/ledger-*.jar
+            !builds/*-sources.jar
           if-no-files-found: error
 
       # Commits the freshly built jar into /builds so the current build is
@@ -58,7 +60,16 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add --force builds/ledger-*.jar
+          # Only the loadable mod jar. The glob has to exclude the sources jar
+          # explicitly: --force overrides .gitignore, so the ignore rule alone
+          # does not keep it out.
+          jar=$(find builds -maxdepth 1 -name 'ledger-*.jar' ! -name '*-sources.jar' | head -1)
+          if [ -z "$jar" ]; then
+            echo "No mod jar was produced." >&2
+            exit 1
+          fi
+          echo "Committing $jar"
+          git add --force "$jar"
           if git diff --staged --quiet; then
             echo "Jar unchanged; nothing to commit."
           else

@@ -21,9 +21,15 @@ Requires **JDK 25** (Minecraft 26.2 runs on Java 25).
 ./gradlew build      # or: gradle build
 ```
 
-Finished jars land in **`builds/`** — `builds/ledger-1.0.0.jar`. Drop it in your server's
-`mods/` folder alongside Fabric API. Ledger is entirely server-side logic, so no client
-install is needed.
+Finished jars land in **`builds/`**. The one you want is:
+
+| File | Use it? |
+| --- | --- |
+| **`builds/ledger-1.0.0.jar`** | **Yes — this is the mod.** Drop it in your server's `mods/` folder alongside Fabric API |
+| `builds/ledger-1.0.0-sources.jar` | No. Source code for IDEs only; the loader will not read it as a mod |
+
+Ledger is entirely server-side logic, so no client install is needed. Only the mod jar is
+committed to the repo; the sources jar is a local build product.
 
 CI builds and tests on every push (`.github/workflows/build.yml`).
 
