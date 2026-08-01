@@ -3,9 +3,6 @@ name: Build
 on:
   push:
     branches: ['**']
-    # Don't retrigger on the commit this workflow makes itself.
-    paths-ignore:
-      - 'builds/**'
   pull_request:
     branches: ['**']
   workflow_dispatch:
@@ -52,8 +49,10 @@ jobs:
           if-no-files-found: error
 
       # Commits the freshly built jar into /builds so the current build is
-      # always browsable in the repo. Skipped for pull requests from forks,
-      # which have no write access to push back.
+      # always browsable in the repo. The [skip ci] marker in the message is
+      # what stops this retriggering the workflow — a paths-ignore filter was
+      # tried first and suppressed the run entirely, so it is deliberately not
+      # used here. Skipped for pull requests from forks, which cannot push back.
       - name: Commit the jar to /builds
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         run: |
