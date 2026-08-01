@@ -1,0 +1,41 @@
+# Weird Gun Game
+# Build a gun out of six parts, then find out whether that was a good idea.
+
+combat:
+  # Guns use a hand-rolled explosion so the arena survives the tournament.
+  # Turn this on to also let vanilla blow holes in the world.
+  explosions-break-blocks: false
+
+  # When false, players in the same tournament cannot hurt each other.
+  friendly-fire: true
+
+  # Whether your own explosions hurt you. The Cushion Stock overrides this
+  # for the player carrying it, whatever this is set to.
+  self-damage-from-explosions: true
+
+  # Particle bullet trails. Turn off on very busy servers.
+  show-bullet-trails: true
+
+  # Global damage dial applied on top of the per-gun balance pass.
+  # 1.0 is the tuned default; raise it for chaos, lower it for longer fights.
+  global-damage-multiplier: 1.0
+
+tournament:
+  # Rounds per tournament when /wgg tournament start is used without a number.
+  rounds: 5
+
+  # Superbox health = base + (per-round x rounds cleared) + (per-player x extra fighters)
+  boss-base-health: 220.0
+  boss-health-per-round: 140.0
+  boss-health-per-player: 60.0
+
+  # Miniboxes summoned per summon attack.
+  minions-per-round: 3
+
+  # Players within this many blocks of the starter are entered automatically.
+  arena-radius: 40
+
+  # Seconds before round one, and the breather between rounds where players
+  # can rebuild their gun at /wgg bench.
+  countdown-seconds: 10
+  intermission-seconds: 15
