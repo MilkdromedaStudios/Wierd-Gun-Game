@@ -5,7 +5,6 @@ import com.milkdromeda.wgg.gun.GunBlueprint;
 import com.milkdromeda.wgg.gun.GunItem;
 import com.milkdromeda.wgg.gun.GunPart;
 import com.milkdromeda.wgg.gun.GunStats;
-import com.milkdromeda.wgg.gun.GunTrait;
 import com.milkdromeda.wgg.gun.PartSection;
 import com.milkdromeda.wgg.util.Text;
 import net.kyori.adventure.text.Component;
@@ -201,8 +200,4 @@ public final class WorkbenchMenu extends Menu {
         }
     }
 
-    /** Small nudge used elsewhere: does this build carry a trait worth shouting about? */
-    public static boolean isSpicy(GunStats stats) {
-        return stats.has(GunTrait.EXPLOSIVE) || stats.has(GunTrait.VORTEX) || stats.has(GunTrait.LIGHTNING);
-    }
 }

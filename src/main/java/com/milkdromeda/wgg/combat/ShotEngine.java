@@ -3,6 +3,7 @@ package com.milkdromeda.wgg.combat;
 import com.milkdromeda.wgg.WeirdGunGamePlugin;
 import com.milkdromeda.wgg.gun.GunStats;
 import com.milkdromeda.wgg.gun.GunTrait;
+import com.milkdromeda.wgg.util.Text;
 import org.bukkit.Color;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
@@ -46,13 +47,33 @@ public final class ShotEngine {
         this.plugin = plugin;
     }
 
+    /** How settled the shooter is, which is all that separates a sniper from a stick. */
+    public enum Stance {
+        /** Firing from the hip. */
+        HIP(1.0),
+        /** Aiming down sights. */
+        AIMED(0.35),
+        /** Scoped, crouched and holding still — the shot goes exactly where the dot is. */
+        STEADY(0.0);
+
+        private final double spreadFactor;
+
+        Stance(double spreadFactor) {
+            this.spreadFactor = spreadFactor;
+        }
+
+        public double spreadFactor() {
+            return spreadFactor;
+        }
+    }
+
     // ------------------------------------------------------------------ firing
 
     /** Fires a single trigger pull. Ammo is expected to already be spent by the caller. */
-    public void fire(Player shooter, GunStats stats, boolean aiming) {
+    public void fire(Player shooter, GunStats stats, Stance stance) {
         World world = shooter.getWorld();
         Location eye = shooter.getEyeLocation();
-        double spread = effectiveSpread(shooter, stats, aiming);
+        double spread = effectiveSpread(shooter, stats, stance);
 
         for (int pellet = 0; pellet < stats.pellets(); pellet++) {
             Vector direction = spreadDirection(eye, spread);
@@ -62,11 +83,7 @@ public final class ShotEngine {
                     direction = locked;
                 }
             }
-            if (stats.isHitscan()) {
-                traceHitscan(shooter, stats, eye.clone(), direction);
-            } else {
-                new ProjectileShot(shooter, stats, eye.clone(), direction).runTaskTimer(plugin, 0L, 1L);
-            }
+            launch(shooter, stats, eye.clone(), direction, true);
         }
 
         muzzleEffects(shooter, world, eye, stats);
@@ -81,10 +98,26 @@ public final class ShotEngine {
         }
     }
 
-    private double effectiveSpread(Player shooter, GunStats stats, boolean aiming) {
-        double spread = stats.spread();
-        if (aiming) {
-            spread *= 0.35;
+    /**
+     * Sends one round on its way down whichever path the gun uses.
+     *
+     * @param deflectable false for rounds already parried once, so a katana duel
+     *                    cannot bounce a single bullet back and forth forever
+     */
+    private void launch(Player shooter, GunStats stats, Location origin, Vector direction, boolean deflectable) {
+        if (stats.isHitscan()) {
+            traceHitscan(shooter, stats, origin, direction, deflectable);
+        } else {
+            new ProjectileShot(shooter, stats, origin, direction, deflectable).runTaskTimer(plugin, 0L, 1L);
+        }
+    }
+
+    private double effectiveSpread(Player shooter, GunStats stats, Stance stance) {
+        double spread = stats.spread() * stance.spreadFactor();
+        if (stance == Stance.STEADY) {
+            // A steadied scope is pinpoint by definition; the other modifiers
+            // would only reintroduce wobble.
+            return 0.0;
         }
         if (shooter.isSneaking()) {
             spread *= 0.7;
@@ -138,7 +171,8 @@ public final class ShotEngine {
 
     // ---------------------------------------------------------------- hitscan
 
-    private void traceHitscan(Player shooter, GunStats stats, Location origin, Vector direction) {
+    private void traceHitscan(Player shooter, GunStats stats, Location origin, Vector direction,
+                              boolean deflectable) {
         World world = shooter.getWorld();
         Set<UUID> alreadyHit = new HashSet<>();
         int pierceLeft = stats.pierceCount();
@@ -159,7 +193,7 @@ public final class ShotEngine {
                 trail(world, origin, point, stats);
                 LivingEntity target = (LivingEntity) entityHit.getHitEntity();
                 alreadyHit.add(target.getUniqueId());
-                impact(shooter, stats, point, target, isHeadshot(target, point));
+                impact(shooter, stats, point, target, isHeadshot(target, point), direction, deflectable);
 
                 if (pierceLeft <= 0) {
                     return;
@@ -182,7 +216,7 @@ public final class ShotEngine {
                     world.playSound(point, Sound.BLOCK_NOTE_BLOCK_HAT, 0.4f, 1.8f);
                     continue;
                 }
-                impact(shooter, stats, point, null, false);
+                impact(shooter, stats, point, null, false, direction, false);
                 return;
             }
 
@@ -218,14 +252,17 @@ public final class ShotEngine {
         private int bouncesLeft;
         private double travelled;
         private int ticks;
+        private final boolean deflectable;
 
-        private ProjectileShot(Player shooter, GunStats stats, Location origin, Vector direction) {
+        private ProjectileShot(Player shooter, GunStats stats, Location origin, Vector direction,
+                               boolean deflectable) {
             this.shooter = shooter;
             this.stats = stats;
             this.position = origin;
             this.velocity = direction.clone().normalize().multiply(stats.velocity());
             this.pierceLeft = stats.pierceCount();
             this.bouncesLeft = stats.has(GunTrait.BOUNCE) ? MAX_BOUNCES : 0;
+            this.deflectable = deflectable;
         }
 
         @Override
@@ -263,7 +300,7 @@ public final class ShotEngine {
                 trail(world, position, point, stats);
                 LivingEntity target = (LivingEntity) entityHit.getHitEntity();
                 alreadyHit.add(target.getUniqueId());
-                impact(shooter, stats, point, target, isHeadshot(target, point));
+                impact(shooter, stats, point, target, isHeadshot(target, point), direction, deflectable);
                 if (pierceLeft <= 0) {
                     cancel();
                     return;
@@ -286,7 +323,7 @@ public final class ShotEngine {
                     world.playSound(point, Sound.BLOCK_SLIME_BLOCK_HIT, 0.6f, 1.4f);
                     return;
                 }
-                impact(shooter, stats, point, null, false);
+                impact(shooter, stats, point, null, false, direction, false);
                 cancel();
                 return;
             }
@@ -330,9 +367,16 @@ public final class ShotEngine {
      *
      * @param target may be null when the round hit a wall or the ground
      */
-    private void impact(Player shooter, GunStats stats, Location point, LivingEntity target, boolean headshot) {
+    private void impact(Player shooter, GunStats stats, Location point, LivingEntity target, boolean headshot,
+                        Vector direction, boolean deflectable) {
         World world = point.getWorld();
         ThreadLocalRandom random = ThreadLocalRandom.current();
+
+        if (deflectable && target instanceof Player defender
+                && plugin.parries().deflects(defender, direction)) {
+            deflect(shooter, defender, stats, point);
+            return;
+        }
 
         if (target != null) {
             double damage = stats.damage() * plugin.wggConfig().globalDamageMultiplier();
@@ -423,14 +467,37 @@ public final class ShotEngine {
         world.spawnParticle(Particle.SMOKE, point, 5, 0.08, 0.08, 0.08, 0.01);
     }
 
+    /**
+     * A katana parry: the round stops dead and is sent straight back down its
+     * own flight path at whoever fired it, keeping the original gun's stats.
+     * The return shot is marked undeflectable so two katanas cannot rally a
+     * single bullet between them indefinitely.
+     */
+    private void deflect(Player shooter, Player defender, GunStats stats, Location point) {
+        World world = point.getWorld();
+        world.playSound(point, Sound.BLOCK_ANVIL_LAND, 0.9f, 1.9f);
+        world.spawnParticle(Particle.CRIT, point, 24, 0.25, 0.25, 0.25, 0.5);
+        world.spawnParticle(Particle.ELECTRIC_SPARK, point, 14, 0.2, 0.2, 0.2, 0.2);
+        world.spawnParticle(Particle.SWEEP_ATTACK, point, 2, 0.2, 0.2, 0.2, 0);
+
+        defender.sendActionBar(Text.mm("<#7dd3fc><bold>DEFLECTED</bold></#7dd3fc> <gray>— returned to sender</gray>"));
+        shooter.playSound(shooter.getLocation(), Sound.BLOCK_ANVIL_LAND, 0.5f, 2.0f);
+
+        Location origin = defender.getEyeLocation();
+        Vector back = shooter.getEyeLocation().toVector().subtract(origin.toVector());
+        if (back.lengthSquared() < 0.01) {
+            return;
+        }
+        launch(defender, stats, origin, back.normalize(), false);
+    }
+
     /** Applies damage while bypassing vanilla invulnerability frames, so fast guns actually fire fast. */
     private void applyDamage(Player shooter, LivingEntity target, double damage) {
         if (target instanceof Player victim && !plugin.wggConfig().friendlyFire()
                 && plugin.tournaments().sameTeam(shooter, victim)) {
             return;
         }
-        target.setNoDamageTicks(0);
-        target.damage(Math.max(0.1, damage), shooter);
+        PluginDamage.apply(target, damage, shooter);
     }
 
     private void heal(Player player, double amount) {
@@ -583,10 +650,15 @@ public final class ShotEngine {
         Vector step = delta.multiply(1.0 / length).multiply(0.7);
         int points = Math.min(80, (int) (length / 0.7));
         Location cursor = from.clone();
+
+        // Resolved once per trail rather than once per particle — this runs for
+        // every pellet of every shot.
+        Particle particle = trailParticle(stats);
+        Particle.DustOptions dust = particle == Particle.DUST ? trailDust(stats) : null;
+
         for (int i = 0; i < points; i++) {
             cursor.add(step);
-            world.spawnParticle(trailParticle(stats), cursor, 1, 0, 0, 0, 0,
-                    trailParticle(stats) == Particle.DUST ? trailDust(stats) : null);
+            world.spawnParticle(particle, cursor, 1, 0, 0, 0, 0, dust);
         }
     }
 

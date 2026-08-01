@@ -12,6 +12,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.SlimeSplitEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 
 /**
  * Runs the one active tournament, and owns the handful of events that only
@@ -124,6 +125,27 @@ public final class TournamentManager implements Listener {
         event.setKeepInventory(true);
         event.getDrops().clear();
         active.onDeath(player);
+    }
+
+    /**
+     * Downed players sit the round out in spectator. This has to happen on
+     * respawn — a gamemode set during the death event gets overwritten by the
+     * respawn itself — and one tick later, once the respawn location is final.
+     */
+    @EventHandler
+    public void onRespawn(PlayerRespawnEvent event) {
+        if (!isRunning()) {
+            return;
+        }
+        Player player = event.getPlayer();
+        if (!active.contains(player) || !active.isDowned(player)) {
+            return;
+        }
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            if (isRunning() && active.isDowned(player)) {
+                active.sendToSpectate(player);
+            }
+        });
     }
 
     @EventHandler

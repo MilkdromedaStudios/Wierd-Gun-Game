@@ -7,16 +7,25 @@ import com.milkdromeda.wgg.gun.GunItem;
 import com.milkdromeda.wgg.gun.GunStats;
 import com.milkdromeda.wgg.gun.GunTrait;
 import com.milkdromeda.wgg.util.Text;
+import org.bukkit.FluidCollisionMode;
+import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.RayTraceResult;
+import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -56,12 +65,16 @@ public final class GunController {
         long nextShotTick;
         long triggerHeldUntil;
         boolean aiming;
+        boolean zoomApplied;
         boolean reloading;
         int spinUp;
         boolean charging;
         long chargeCompleteTick;
         int regenCounter;
         double appliedHandling;
+        int steadyTicks;
+        Location lastPosition;
+        String scopeReadout = "";
         BukkitTask reloadTask;
         String reloadingParts;
     }
@@ -96,8 +109,11 @@ public final class GunController {
 
     public void clear(Player player) {
         Session session = sessions.remove(player.getUniqueId());
-        if (session != null && session.reloadTask != null) {
-            session.reloadTask.cancel();
+        if (session != null) {
+            if (session.reloadTask != null) {
+                session.reloadTask.cancel();
+            }
+            clearZoom(player, session);
         }
         removeHandling(player);
     }
@@ -115,7 +131,10 @@ public final class GunController {
                     session.reloadTask = null;
                     session.reloading = false;
                 }
-                session.aiming = false;
+                // Aiming applies a slowness effect for the scope zoom. Putting
+                // the gun away has to take it back off, or the player is stuck
+                // walking at scope speed forever.
+                stopAiming(player, session);
                 session.spinUp = 0;
                 session.charging = false;
                 if (session.appliedHandling != 0) {
@@ -133,6 +152,7 @@ public final class GunController {
         GunStats stats = blueprint.stats();
 
         applyHandling(player, session, stats);
+        tickScope(player, session, stats);
         tickAmmoRegen(player, session, stats, held);
         tickCharge(player, session, stats, held);
         tickSustainedFire(player, session, stats, held);
@@ -140,6 +160,82 @@ public final class GunController {
         if (!session.reloading) {
             showAmmoBar(player, stats, GunItem.ammoOf(held), session);
         }
+    }
+
+    /** Ticks required standing still before a scope counts as steadied. */
+    private static final int STEADY_TICKS_REQUIRED = 20;
+
+    /** Minimum zoom level that gets the full scope treatment. */
+    private static final int SCOPE_ZOOM = 2;
+
+    /**
+     * The scope. While aiming a real optic, a marker is drawn at the exact point
+     * the round would land — sent only to the shooter, so it is their scope and
+     * not a laser everyone can see — along with a range and target readout.
+     * <p>
+     * Holding still while crouched steadies the scope, which removes spread
+     * entirely rather than adding damage. That keeps snipers precise without
+     * letting them punch through the balance caps.
+     */
+    private void tickScope(Player player, Session session, GunStats stats) {
+        if (!session.aiming || stats.zoom() < SCOPE_ZOOM) {
+            session.steadyTicks = 0;
+            session.scopeReadout = "";
+            return;
+        }
+
+        Location current = player.getLocation();
+        boolean stationary = session.lastPosition != null
+                && session.lastPosition.getWorld().equals(current.getWorld())
+                && session.lastPosition.distanceSquared(current) < 0.002;
+        session.lastPosition = current.clone();
+
+        if (stationary && player.isSneaking()) {
+            session.steadyTicks = Math.min(STEADY_TICKS_REQUIRED, session.steadyTicks + 1);
+        } else {
+            session.steadyTicks = 0;
+        }
+        boolean steady = session.steadyTicks >= STEADY_TICKS_REQUIRED;
+
+        Location eye = player.getEyeLocation();
+        Vector direction = eye.getDirection();
+        RayTraceResult hit = player.getWorld().rayTrace(eye, direction, stats.range(),
+                FluidCollisionMode.NEVER, true, 0.4,
+                entity -> entity instanceof LivingEntity && !entity.equals(player) && !entity.isDead());
+
+        if (hit == null) {
+            session.scopeReadout = steady
+                    ? " <dark_gray>|</dark_gray> <#4ade80>STEADY</#4ade80>"
+                    : " <dark_gray>|</dark_gray> <#a3e635>SCOPED</#a3e635>";
+            return;
+        }
+
+        Location mark = hit.getHitPosition().toLocation(player.getWorld());
+        // Player-scoped particle: only the shooter sees their own aim point.
+        player.spawnParticle(Particle.DUST, mark, 1, 0, 0, 0, 0,
+                new Particle.DustOptions(steady
+                        ? org.bukkit.Color.fromRGB(0x4A, 0xDE, 0x80)
+                        : org.bukkit.Color.fromRGB(0xF4, 0x3F, 0x5E), 0.6f));
+
+        String distance = Text.num(eye.distance(mark)) + "m";
+        Entity target = hit.getHitEntity();
+        String label = target instanceof Player hostile ? " <white>" + hostile.getName() + "</white>"
+                : target instanceof LivingEntity living
+                ? " <white>" + living.getType().name().toLowerCase().replace('_', ' ') + "</white>"
+                : "";
+
+        session.scopeReadout = " <dark_gray>|</dark_gray> "
+                + (steady ? "<#4ade80>STEADY" : "<#a3e635>SCOPED")
+                + " <dark_gray>" + distance + "</dark_gray>" + label;
+    }
+
+    private ShotEngine.Stance stanceOf(Session session) {
+        if (!session.aiming) {
+            return ShotEngine.Stance.HIP;
+        }
+        return session.steadyTicks >= STEADY_TICKS_REQUIRED
+                ? ShotEngine.Stance.STEADY
+                : ShotEngine.Stance.AIMED;
     }
 
     private void tickAmmoRegen(Player player, Session session, GunStats stats, ItemStack held) {
@@ -268,7 +364,7 @@ public final class GunController {
                     cancel();
                     return;
                 }
-                shots.fire(player, stats, live.aiming);
+                shots.fire(player, stats, stanceOf(live));
             }
         }.runTaskTimer(plugin, 0L, 2L);
     }
@@ -279,7 +375,7 @@ public final class GunController {
         }
         session.nextShotTick = currentTick + (long) Math.ceil(stats.fireRateTicks());
         player.playSound(player.getLocation(), Sound.ENTITY_WARDEN_SONIC_BOOM, 0.7f, 1.4f);
-        shots.fire(player, stats, session.aiming);
+        shots.fire(player, stats, stanceOf(session));
     }
 
     private void attemptShot(Player player, Session session, GunStats stats, ItemStack held) {
@@ -298,7 +394,7 @@ public final class GunController {
         }
         session.nextShotTick = currentTick + Math.max(1L, (long) Math.round(interval));
 
-        shots.fire(player, stats, session.aiming);
+        shots.fire(player, stats, stanceOf(session));
     }
 
     /**
@@ -426,14 +522,27 @@ public final class GunController {
 
         if (session.aiming) {
             if (stats.zoom() > 0) {
-                player.addPotionEffect(new org.bukkit.potion.PotionEffect(
-                        org.bukkit.potion.PotionEffectType.SLOWNESS,
+                session.zoomApplied = true;
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,
                         Integer.MAX_VALUE, Math.min(4, 1 + stats.zoom()), false, false, false));
             }
             player.playSound(player.getLocation(), Sound.ITEM_SPYGLASS_USE, 0.7f, 1.2f);
         } else {
-            player.removePotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS);
+            clearZoom(player, session);
             player.playSound(player.getLocation(), Sound.ITEM_SPYGLASS_STOP_USING, 0.7f, 1.2f);
+        }
+    }
+
+    private void stopAiming(Player player, Session session) {
+        session.aiming = false;
+        clearZoom(player, session);
+    }
+
+    /** Only strips slowness we put on, so we never eat an effect from elsewhere. */
+    private void clearZoom(Player player, Session session) {
+        if (session.zoomApplied) {
+            session.zoomApplied = false;
+            player.removePotionEffect(PotionEffectType.SLOWNESS);
         }
     }
 
@@ -474,7 +583,8 @@ public final class GunController {
 
     private void showAmmoBar(Player player, GunStats stats, int ammo, Session session) {
         String color = ammo == 0 ? "<#f43f5e>" : ammo <= stats.magSize() * 0.25 ? "<#facc15>" : "<#ff8a3d>";
-        String aim = session.aiming ? " <dark_gray>|</dark_gray> <#a3e635>ADS</#a3e635>" : "";
+        String aim = !session.scopeReadout.isEmpty() ? session.scopeReadout
+                : session.aiming ? " <dark_gray>|</dark_gray> <#a3e635>ADS</#a3e635>" : "";
         player.sendActionBar(Text.mm(color + "<bold>" + ammo + "</bold>"
                 + "<dark_gray>/" + stats.magSize() + "</dark_gray>  "
                 + Text.bar(ammo, Math.max(1, stats.magSize()), 15, color, "<dark_gray>") + aim));

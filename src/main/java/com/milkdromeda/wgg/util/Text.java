@@ -24,10 +24,6 @@ public final class Text {
         return mm(PREFIX + input);
     }
 
-    public static String plain(Component component) {
-        return net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
-                .serialize(component);
-    }
 
     /**
      * A little unicode meter, e.g. {@code ▉▉▉▉▉▉░░░░}.

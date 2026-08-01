@@ -16,9 +16,9 @@ class KnifeTest {
     private static final double MELEE_DPS_CEILING = 18.0;
 
     @Test
-    @DisplayName("the rack holds ten distinct, resolvable knives")
+    @DisplayName("the rack holds eleven distinct, resolvable knives")
     void knivesAreDistinct() {
-        assertEquals(10, Knife.all().size());
+        assertEquals(11, Knife.all().size());
 
         Set<String> ids = new HashSet<>();
         for (Knife knife : Knife.all()) {
@@ -40,6 +40,19 @@ class KnifeTest {
             assertTrue(dps <= MELEE_DPS_CEILING,
                     () -> knife.id() + " melee DPS is out of hand: " + dps);
         }
+    }
+
+    @Test
+    @DisplayName("the katana is the only knife that parries")
+    void katanaDeflects() {
+        Knife katana = Knife.byId("katana");
+        assertNotNull(katana);
+        assertTrue(katana.has(Knife.KnifeEffect.DEFLECT));
+
+        long deflectors = Knife.all().stream()
+                .filter(knife -> knife.has(Knife.KnifeEffect.DEFLECT))
+                .count();
+        assertEquals(1, deflectors, "deflect should stay a katana signature");
     }
 
     @Test

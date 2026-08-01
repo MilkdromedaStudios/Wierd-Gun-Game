@@ -2,6 +2,7 @@ package com.milkdromeda.wgg;
 
 import com.milkdromeda.wgg.combat.CombatListener;
 import com.milkdromeda.wgg.combat.GunController;
+import com.milkdromeda.wgg.combat.ParryManager;
 import com.milkdromeda.wgg.combat.ShotEngine;
 import com.milkdromeda.wgg.command.WggCommand;
 import com.milkdromeda.wgg.gun.PartRegistry;
@@ -19,6 +20,7 @@ public final class WeirdGunGamePlugin extends JavaPlugin {
     private ShotEngine shotEngine;
     private GunController gunController;
     private BenchStore benches;
+    private ParryManager parries;
     private TournamentManager tournaments;
 
     @Override
@@ -30,6 +32,7 @@ public final class WeirdGunGamePlugin extends JavaPlugin {
         shotEngine = new ShotEngine(this);
         gunController = new GunController(this, shotEngine);
         benches = new BenchStore();
+        parries = new ParryManager();
         tournaments = new TournamentManager(this);
 
         getServer().getPluginManager().registerEvents(new CombatListener(this), this);
@@ -78,6 +81,10 @@ public final class WeirdGunGamePlugin extends JavaPlugin {
 
     public BenchStore benches() {
         return benches;
+    }
+
+    public ParryManager parries() {
+        return parries;
     }
 
     public TournamentManager tournaments() {

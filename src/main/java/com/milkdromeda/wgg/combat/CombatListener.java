@@ -14,6 +14,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
@@ -56,10 +57,14 @@ public final class CombatListener implements Listener {
             return;
         }
 
-        // Knives that happen to be food (the Baguette) must not be eaten.
-        if (KnifeItem.isKnife(item) && (event.getAction() == Action.RIGHT_CLICK_AIR
+        Knife heldKnife = KnifeItem.knifeOf(item);
+        if (heldKnife != null && (event.getAction() == Action.RIGHT_CLICK_AIR
                 || event.getAction() == Action.RIGHT_CLICK_BLOCK)) {
+            // Also stops knives that happen to be food (the Baguette) being eaten.
             event.setCancelled(true);
+            if (heldKnife.has(Knife.KnifeEffect.DEFLECT)) {
+                plugin.parries().start(player);
+            }
         }
     }
 
@@ -88,12 +93,18 @@ public final class CombatListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         plugin.gunController().clear(event.getPlayer());
+        plugin.parries().clear(event.getPlayer());
     }
 
     // ------------------------------------------------------------------ knives
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onMelee(EntityDamageByEntityEvent event) {
+        // Gunshots, explosions and bleed ticks arrive here too, because they are
+        // dealt as damage from the player. Their numbers are already final.
+        if (PluginDamage.inProgress()) {
+            return;
+        }
         if (!(event.getDamager() instanceof Player attacker)
                 || !(event.getEntity() instanceof LivingEntity victim)) {
             return;
@@ -132,16 +143,15 @@ public final class CombatListener implements Listener {
         }
         damage *= plugin.wggConfig().globalDamageMultiplier();
 
+        event.setDamage(damage);
         if (knife.has(Knife.KnifeEffect.TRUE_DAMAGE)) {
-            // Bypass armour by dealing it straight to health.
-            event.setDamage(0.1);
-            victim.setNoDamageTicks(0);
-            victim.setHealth(Math.max(0.0, victim.getHealth() - damage));
-            if (victim.getHealth() <= 0.0) {
-                victim.damage(damage, attacker);
+            // Zero the reduction modifiers rather than editing health directly,
+            // so vanilla still handles death, credit and death messages.
+            for (EntityDamageEvent.DamageModifier modifier : EntityDamageEvent.DamageModifier.values()) {
+                if (modifier != EntityDamageEvent.DamageModifier.BASE && event.isApplicable(modifier)) {
+                    event.setDamage(modifier, 0.0);
+                }
             }
-        } else {
-            event.setDamage(damage);
         }
 
         if (backstab) {
@@ -183,7 +193,7 @@ public final class CombatListener implements Listener {
                     }
                 }
                 case BLINK -> blinkBehind(attacker, victim);
-                case CRIT, TRUE_DAMAGE -> { /* handled inline above */ }
+                case CRIT, TRUE_DAMAGE, DEFLECT -> { /* handled elsewhere */ }
             }
         }
     }
@@ -198,8 +208,7 @@ public final class CombatListener implements Listener {
                     cancel();
                     return;
                 }
-                victim.setNoDamageTicks(0);
-                victim.damage(1.0, attacker);
+                PluginDamage.apply(victim, 1.0, attacker);
                 victim.getWorld().spawnParticle(Particle.DUST, victim.getLocation().add(0, 1, 0), 5,
                         0.2, 0.3, 0.2, 0,
                         new Particle.DustOptions(org.bukkit.Color.fromRGB(0x8B, 0x00, 0x00), 1.0f));
@@ -234,9 +243,4 @@ public final class CombatListener implements Listener {
         return entity.getPersistentDataContainer().has(Keys.BOSS_TAG, PersistentDataType.STRING);
     }
 
-    /** Shown once when a player first picks up a gun in a session. */
-    public void sendControlsHint(Player player) {
-        player.sendMessage(Text.msg("<gray>Right-click <white>fire</white>"
-                + " • <white>F</white> reload • Left-click <white>aim</white></gray>"));
-    }
 }

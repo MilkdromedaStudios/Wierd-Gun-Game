@@ -104,6 +104,24 @@ public final class Tournament {
         return living;
     }
 
+    public boolean isDowned(Player player) {
+        return downed.contains(player.getUniqueId());
+    }
+
+    /**
+     * Puts a downed player into spectator at the arena. Called after respawn
+     * rather than on death, because a gamemode change during the death event
+     * is undone by the respawn that follows it.
+     */
+    public void sendToSpectate(Player player) {
+        if (!isDowned(player)) {
+            return;
+        }
+        player.setGameMode(GameMode.SPECTATOR);
+        player.teleport(arena.clone().add(0, 3, 0));
+        player.sendMessage(Text.msg("<gray>Spectating until the next round.</gray>"));
+    }
+
     public State state() {
         return state;
     }

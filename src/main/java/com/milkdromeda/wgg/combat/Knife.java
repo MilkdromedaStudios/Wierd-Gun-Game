@@ -40,7 +40,8 @@ public record Knife(
         TRUE_DAMAGE("Armour Piercing", "Ignores armour entirely."),
         SLIP("Buttered", "Targets slide away helplessly."),
         POISON("Toxic", "Applies poison."),
-        CRIT("Keen", "High chance of a big critical hit.");
+        CRIT("Keen", "High chance of a big critical hit."),
+        DEFLECT("Deflect", "Right-click to parry — bullets bounce back at whoever fired them.");
 
         private final String displayName;
         private final String description;
@@ -101,6 +102,10 @@ public record Knife(
         add(new Knife("boxcutter", "Boxcutter", Material.SHEARS, Rarity.EXOTIC,
                 "Designed for boxes. The Superbox is a box.",
                 4.0, 3.6, 1.5, 0.0, 0.0, 2.2, List.of(KnifeEffect.TRUE_DAMAGE)));
+
+        add(new Knife("katana", "Katana", Material.GOLDEN_SWORD, Rarity.EXOTIC,
+                "Right-click to parry. Bullets are a suggestion.",
+                6.0, 2.2, 1.6, 0.3, 0.0, 1.0, List.of(KnifeEffect.DEFLECT)));
     }
 
     private static void add(Knife knife) {

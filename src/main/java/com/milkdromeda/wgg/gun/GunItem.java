@@ -6,7 +6,6 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -109,14 +108,9 @@ public final class GunItem {
         meta.displayName(Text.mm("<gradient:#ff8a3d:#ff4fd8><bold>" + blueprint.displayName() + "</bold></gradient>"));
         meta.lore(buildLore(blueprint, stats, ammo));
 
-        // Use the vanilla durability bar as an ammo gauge.
-        if (meta instanceof Damageable damageable) {
-            int max = item.getType().getMaxDurability();
-            if (max > 1) {
-                double spent = 1.0 - (stats.magSize() == 0 ? 0.0 : (double) ammo / stats.magSize());
-                damageable.setDamage((int) Math.round(spent * (max - 1)));
-            }
-        }
+        // No durability-bar ammo gauge here: the client only draws that bar for
+        // damageable items, and these are unbreakable so a gun can never be
+        // destroyed mid-fight. Ammo lives in the lore and the action bar instead.
         item.setItemMeta(meta);
     }
 
