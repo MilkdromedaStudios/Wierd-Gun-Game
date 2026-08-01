@@ -3,11 +3,19 @@ name: Build
 on:
   push:
     branches: ['**']
+    # Don't retrigger on the commit this workflow makes itself.
+    paths-ignore:
+      - 'builds/**'
   pull_request:
+    branches: ['**']
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -17,6 +25,9 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v4
+        with:
+          # A real ref is needed to push the built jar back.
+          ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Set up JDK 25
         uses: actions/setup-java@v4
@@ -27,12 +38,31 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build
-        run: gradle build --no-daemon
+      - name: Build and test
+        run: ./gradlew build --no-daemon --stacktrace
 
-      - name: Upload mod jar
+      - name: Show what was built
+        run: ls -lh builds/
+
+      - name: Upload jar as an artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Ledger
+          name: ledger-jar
           path: builds/ledger-*.jar
           if-no-files-found: error
+
+      # Commits the freshly built jar into /builds so the current build is
+      # always browsable in the repo. Skipped for pull requests from forks,
+      # which have no write access to push back.
+      - name: Commit the jar to /builds
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --force builds/ledger-*.jar
+          if git diff --staged --quiet; then
+            echo "Jar unchanged; nothing to commit."
+          else
+            git commit -m "Build ledger jar into /builds [skip ci]"
+            git push origin HEAD:${{ github.head_ref || github.ref_name }}
+          fi

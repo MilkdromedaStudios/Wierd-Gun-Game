@@ -1,8 +1,11 @@
 # Gradle
 .gradle/
 build/
-builds/
 !gradle/wrapper/gradle-wrapper.jar
+
+# Built jars live in /builds and are committed by CI, but the sources jar
+# is noise and stays out.
+builds/*-sources.jar
 
 # Loom
 .fabric/
