@@ -202,10 +202,7 @@ public final class LedgerCommands {
 
     private static int placeCamera(CommandSourceStack source) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
         ServerPlayer player = source.getPlayerOrException();
-        if (!Ledger.cameras().placeNear(player)) {
-            source.sendFailure(Component.literal("Nowhere around here to put one."));
-            return 0;
-        }
+        Ledger.cameras().placeNear(player);
         source.sendSuccess(() -> Component.literal("Something is watching now.")
                 .withStyle(ChatFormatting.DARK_GRAY), false);
         return 1;

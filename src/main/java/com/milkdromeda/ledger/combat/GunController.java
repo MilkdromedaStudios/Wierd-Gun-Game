@@ -34,8 +34,14 @@ import java.util.UUID;
  */
 public final class GunController {
 
-    /** How long one click keeps an automatic firing, in ticks. */
-    private static final int TRIGGER_WINDOW = 12;
+    /**
+     * How long one click keeps an automatic firing, in ticks. The client repeats
+     * a held right-click every four ticks, so this needs to outlast that gap with
+     * room for lag — but not by much, because whatever is left over is fired after
+     * the trigger is let go, and on a gun that cycles every tick that tail is the
+     * difference between a burst and a magazine.
+     */
+    private static final int TRIGGER_WINDOW = 8;
 
     private final Map<UUID, Session> sessions = new HashMap<>();
 

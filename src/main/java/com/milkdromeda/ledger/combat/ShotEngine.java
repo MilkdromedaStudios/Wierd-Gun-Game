@@ -37,6 +37,12 @@ public final class ShotEngine {
     /** How far apart trail particles are placed, in blocks. */
     private static final double TRAIL_STEP = 0.7;
 
+    /** How far in front of the eye the trail starts, in blocks. */
+    private static final double TRAIL_LEAD_IN = 1.6;
+
+    /** How far a hitbox is grown before a round is tested against it. */
+    private static final float HITBOX_MARGIN = 0.3f;
+
     private ShotEngine() {
     }
 
@@ -101,12 +107,16 @@ public final class ShotEngine {
                     origin, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, shooter));
             Vec3 limit = blockHit.getType() == HitResult.Type.MISS ? end : blockHit.getLocation();
 
+            // The level-taking overload is the one that wants a hitbox margin.
+            // Its sibling takes a double that is really a starting best-distance,
+            // and passing a margin-sized number there quietly drops every target
+            // more than half a block from the muzzle.
             EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
-                    shooter, origin, limit,
+                    level, shooter, origin, limit,
                     new AABB(origin, limit).inflate(1.0),
                     candidate -> candidate.isAlive() && candidate != shooter
                             && candidate instanceof LivingEntity,
-                    0.3);
+                    HITBOX_MARGIN);
 
             if (entityHit != null) {
                 Vec3 point = entityHit.getLocation();
@@ -198,12 +208,16 @@ public final class ShotEngine {
 
     private static void trail(ServerLevel level, Vec3 from, Vec3 to, GunStats stats) {
         double length = from.distanceTo(to);
-        if (length < 0.05) {
+        if (length < TRAIL_LEAD_IN) {
             return;
         }
-        Vec3 step = to.subtract(from).normalize().scale(TRAIL_STEP);
-        Vec3 cursor = from;
-        for (int i = 0; i < Math.min(80, (int) (length / TRAIL_STEP)); i++) {
+        Vec3 direction = to.subtract(from).normalize();
+        Vec3 step = direction.scale(TRAIL_STEP);
+        // Started a little way out: a particle spawned on the eye is a particle
+        // spawned inside the camera, which reads as a smear rather than a tracer.
+        Vec3 cursor = from.add(direction.scale(TRAIL_LEAD_IN));
+        int steps = (int) ((length - TRAIL_LEAD_IN) / TRAIL_STEP);
+        for (int i = 0; i < Math.min(80, steps); i++) {
             cursor = cursor.add(step);
             level.sendParticles(trailParticle(stats), cursor.x, cursor.y, cursor.z, 1, 0, 0, 0, 0);
         }

@@ -89,31 +89,48 @@ public final class Cameras {
     }
 
     /**
-     * Looks for somewhere a camera would plausibly have been put: tucked under
-     * the canopy up top, or in open air in a cave below.
+     * Looks for somewhere a camera would plausibly have been put: bolted to a
+     * trunk, tucked under the canopy, or wedged against a cave wall.
      */
     private BlockPos findSpot(ServerLevel level, ServerPlayer player) {
         ThreadLocalRandom random = ThreadLocalRandom.current();
         BlockPos origin = player.blockPosition();
 
-        for (int attempt = 0; attempt < 12; attempt++) {
+        for (int attempt = 0; attempt < 24; attempt++) {
             int x = origin.getX() + random.nextInt(-SEARCH_RADIUS, SEARCH_RADIUS);
             int z = origin.getZ() + random.nextInt(-SEARCH_RADIUS, SEARCH_RADIUS);
 
             boolean underground = player.getY() < 50;
             int y = underground
                     ? origin.getY() + random.nextInt(-8, 9)
-                    : level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) + random.nextInt(2, 6);
+                    : level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) + random.nextInt(1, 5);
 
             BlockPos candidate = new BlockPos(x, y, z);
-            // It needs air to hang in, and something solid above to hang from.
-            if (level.getBlockState(candidate).isAir()
-                    && !level.getBlockState(candidate.above(2)).isAir()
-                    && candidate.getY() > level.getMinY() + 2) {
+            if (candidate.getY() > level.getMinY() + 2
+                    && level.getBlockState(candidate).isAir()
+                    && hasAnchor(level, candidate)) {
                 return candidate;
             }
         }
         return null;
+    }
+
+    /**
+     * Something to bolt to. A camera hanging in clear sky would give the game
+     * away, so it wants a trunk, a ceiling or a wall within arm's reach.
+     */
+    private boolean hasAnchor(ServerLevel level, BlockPos at) {
+        BlockPos[] neighbours = {
+                at.above(), at.above(2),
+                at.north(), at.south(), at.east(), at.west(),
+        };
+        for (BlockPos neighbour : neighbours) {
+            if (!level.getBlockState(neighbour).isAir()
+                    && level.getFluidState(neighbour).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void place(ServerLevel level, BlockPos where) {
@@ -150,14 +167,19 @@ public final class Cameras {
         return cameras.size();
     }
 
-    /** Places one directly, for looking at it without waiting. */
-    public boolean placeNear(ServerPlayer player) {
+    /**
+     * Places one directly, for looking at it without waiting. Falls back to open
+     * air a few blocks ahead of the player when there is nothing to bolt to,
+     * because a debug command that quietly does nothing is worse than a camera
+     * floating somewhere implausible.
+     */
+    public void placeNear(ServerPlayer player) {
         ServerLevel level = player.level();
         BlockPos spot = findSpot(level, player);
         if (spot == null) {
-            return false;
+            spot = BlockPos.containing(player.getEyePosition()
+                    .add(player.getLookAngle().scale(4.0)));
         }
         place(level, spot);
-        return true;
     }
 }
