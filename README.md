@@ -86,15 +86,40 @@ budget are slowed down instead.
 
 ## Commands
 
+Every command. `/ledger` on its own opens the gun bench.
+
+### Guns
+
 | Command | What it does |
 | --- | --- |
-| `/guns`, `/bench`, `/gunbench` | **Open the gun bench.** Short aliases for the main screen |
-| `/ledger bench` | The same menu |
-| `/ledger gun <preset>` | Merge and take a ready-made gun (`rpg`, `ak`, `sniper`, `maxigun`…) |
-| `/ledger part <id>` | Fit one part onto your bench |
+| `/guns` · `/bench` · `/gunbench` | **Open the gun bench.** Short aliases for the main screen |
+| `/ledger bench` · `/ledger menu` | The same bench |
+| `/ledger gun <preset>` | Merge and take a ready-made gun. Tab-completes |
+| `/ledger part <id>` | Fit a single part onto your bench. Tab-completes all 60 |
 | `/ledger random` | Roll all six sections and take the result |
-| `/ledger parts` | List every part id |
+| `/ledger parts` | Print every part id, grouped by section |
+
+### The record and Earth
+
+| Command | What it does |
+| --- | --- |
 | `/ledger record` | Show what Earth has written down about you |
+| `/ledger book` | Hand over the next volume early, instead of waiting 300 interactions |
+
+### The ending
+
+| Command | What it does |
+| --- | --- |
+| `/ledger witness` | Summon THE WITNESS now, instead of waiting for 10,000 interactions |
+| `/ledger stopwitness` | Dismiss it and clean up its body |
+| `/ledger cow` | Run the ending on its own. It takes about seven seconds |
+
+### Gun presets
+
+Usable with `/ledger gun <preset>`:
+
+`ak` · `sniper` · `shotgun` · `rpg` · `maxigun` · `boomrifle` · `chicken_cannon` ·
+`nuke_pistol` · `blackhole` · `stormbringer` · `frostbite` · `noodle_nailer`
 
 ## Merging
 
@@ -109,18 +134,29 @@ from the parts on demand, so rebalancing a part updates every gun already in the
 Nothing in the menu is a real item — clicks are intercepted before they reach the
 container and quick-move is disabled, so buttons cannot be pulled out or duplicated.
 
+## The ending
+
+At **10,000 interactions across the world** — everyone's mining counts toward the same
+tally — the record stops being a record and stands up.
+
+**THE WITNESS** is a halo of 24 invisible armour stands, each balancing one block on its
+head, orbiting an invisible core. The blocks it wears are taken from what players actually
+mined, so every Witness is assembled out of its own victims' habits. Four stages keyed to
+its health, each faster and angrier. Between attacks it reads your held item back to you by
+name — it does not threaten, it recites.
+
+Kill it and it says *"The record is closed."*
+
+Then a cow wanders in. It has no boss bar, no glow, no name and no hostility, and it is an
+ordinary cow in every respect the game can measure. About seven seconds later it kills
+everyone present.
+
 ## Not built yet
 
-Named honestly, because the design is settled but the code is not written:
-
-- **Cameras** — small watchers on trees and in caves that turn to face you.
-  `models/camera.bbmodel` is the authored model.
-- **The Earth book** — a written book of your real statistics, author "Earth", slipped
-  into your hotbar after a few hundred records, hinting that something is watching.
-- **THE WITNESS** — at 10,000 interactions the record assembles itself into a staged boss
-  built from the blocks you mined, which names your inventory back to you.
-  `models/witness.bbmodel` is the silhouette reference.
-- **The cow.** No further comment.
+- **Cameras** — small watchers on trees and in caves that turn to face you. The book
+  already hints at them and `models/camera.bbmodel` is authored, but nothing spawns yet.
+- **Gun firing** — the bench merges guns and the stats are all real, but the shooting
+  engine was Bukkit-only and did not survive the move to Fabric.
 
 ## Models
 
@@ -139,3 +175,58 @@ headless, under Xvfb with software GL.
 | ![Loaded on 26.2](screenshots/01-loaded-on-26.2.png) | The title screen reading **Minecraft 26.2 (Modded)** — Ledger loaded |
 | ![Book delivered](screenshots/02-book-delivered.png) | `/ledger book` puts the volume in the first free hotbar slot, with the delivery line in chat |
 | ![The Earth book](screenshots/03-earth-book-page-1.png) | Volume 1, page 1. Later pages print the player's real recorded figures |
+
+## How the screenshots were made
+
+There is no display, no GPU and no screenshot tool in the environment this was built in,
+so the game was run and driven entirely headless. Recorded here because it is genuinely
+reusable for testing any Fabric mod in CI.
+
+**1. A virtual screen.** `Xvfb` provides an X server that draws into memory rather than a
+monitor:
+
+```bash
+Xvfb :99 -screen 0 1280x720x24 &
+export DISPLAY=:99
+```
+
+**2. Software OpenGL.** Minecraft needs GL, and there is no graphics card, so Mesa renders
+on the CPU with llvmpipe:
+
+```bash
+export LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe
+export MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330
+./gradlew runClient
+```
+
+Startup takes several minutes this way. It is slow, not broken.
+
+**3. Capture and control with `java.awt.Robot`.** `import`, `xwd`, `scrot`, `ffmpeg` and
+`xdotool` are all absent, but the JDK already ships a class that grabs the screen *and*
+synthesises mouse and keyboard input against the same X display — so it replaces both the
+missing screenshot tool and the missing automation tool:
+
+```java
+Robot robot = new Robot();
+ImageIO.write(robot.createScreenCapture(screenBounds), "png", file);  // screenshot
+robot.mouseMove(x, y); robot.mousePress(BUTTON1_DOWN_MASK);           // click
+robot.keyPress(KeyEvent.VK_SLASH);                                    // type
+```
+
+The helpers used were a `Grab` class for stills and a `Drive` class taking a small script
+like `click,638,356;wait,3500;type,ledger book;key,10;shot,out.png`.
+
+**4. Actually playing.** Clicked through the title screen, ticked *Allow Commands*, created
+a world, waited out worldgen, pressed `/` to open chat, typed `ledger book`, pressed Enter,
+then right-clicked to open the book — all through `Robot`, screenshotting between steps to
+find the next button.
+
+### What this proved, and what it did not
+
+The three screenshots above are real frames from a running game, not mock-ups: the mod
+loading on 26.2, the book arriving in the hotbar with its delivery message, and the book's
+own text rendered by Minecraft.
+
+**THE WITNESS and the cow have not been seen running.** They compile and are committed, but
+every attempt to relaunch the client after that first successful session died on X server
+plumbing. Run `/ledger witness` locally and you will know in seconds.
