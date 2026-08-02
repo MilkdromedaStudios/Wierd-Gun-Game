@@ -1,6 +1,8 @@
 package com.milkdromeda.ledger;
 
 import com.milkdromeda.ledger.boss.TheCow;
+import com.milkdromeda.ledger.combat.GunController;
+import com.milkdromeda.ledger.watch.Cameras;
 import com.milkdromeda.ledger.boss.WitnessManager;
 import com.milkdromeda.ledger.command.LedgerCommands;
 import com.milkdromeda.ledger.menu.BenchStore;
@@ -27,6 +29,8 @@ public final class Ledger implements ModInitializer {
     private static WatchService watch;
     private static BenchStore benches;
     private static WitnessManager witness;
+    private static GunController guns;
+    private static Cameras cameras;
 
     public static WatchService watch() {
         return watch;
@@ -40,6 +44,14 @@ public final class Ledger implements ModInitializer {
         return witness;
     }
 
+    public static GunController guns() {
+        return guns;
+    }
+
+    public static Cameras cameras() {
+        return cameras;
+    }
+
     @Override
     public void onInitialize() {
         watch = new WatchService();
@@ -47,6 +59,10 @@ public final class Ledger implements ModInitializer {
         benches = new BenchStore();
         LedgerCommands.register();
         witness = new WitnessManager();
+        guns = new GunController();
+        guns.register();
+        cameras = new Cameras();
+        cameras.register();
         ServerTickEvents.END_SERVER_TICK.register(TheCow::tick);
         ServerTickEvents.END_SERVER_TICK.register(server -> witness.tick(server));
 

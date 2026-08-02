@@ -118,13 +118,50 @@ Every command. `/ledger` on its own opens the gun bench.
 | `/ledger record` | Show what Earth has written down about you |
 | `/ledger book` | Hand over the next volume early, instead of waiting 300 interactions |
 
-### The ending
+### Firing
+
+Right-click fires. Hold it for automatics — Minecraft only reports a click on air once, so
+a held trigger is a short window that each click refreshes and the tick loop fires inside.
+**Sneak to aim**, which cuts spread to about a third. Sprinting and being airborne widen it.
+
+Rounds are hitscan, resolved the same tick, because the fastest builds fire twenty times a
+second and simulated projectiles at that rate would be a thousand entities a minute for no
+visible gain. Pellets, spread, damage, range, pierce, knockback, lifesteal, incendiary and
+blast all come from the merged stats, so the balance pass that governs the bench governs
+the bullets.
+
+Headshots multiply damage and pop a crit. Explosions do their own falloff rather than
+calling vanilla's, which would grind the terrain into craters. **Reloading starts on its
+own** when the magazine runs dry — there is no key to learn and no way to be stuck holding
+an empty gun.
+
+## The cameras
+
+Small observers that appear in the trees and in dark places underground, hanging with the
+lens angled down.
+
+They do nothing. They do not track you, report you, or react. That is the whole feature:
+the book has been implying for several volumes that something is watching, and a camera
+that visibly reacted would answer the question, whereas one that simply exists leaves it
+open. The record is kept whether or not any camera can see you.
+
+Each is an invisible armour stand wearing an observer block, so no resource pack is needed.
+`models/camera.bbmodel` is the authored model if you want to replace the look.
+
+## The ending
 
 | Command | What it does |
 | --- | --- |
 | `/ledger witness` | Summon THE WITNESS now, instead of waiting for 10,000 interactions |
 | `/ledger stopwitness` | Dismiss it and clean up its body |
 | `/ledger cow` | Run the ending on its own. It takes about seven seconds |
+
+### Cameras
+
+| Command | What it does |
+| --- | --- |
+| `/ledger camera` | Place one nearby now, instead of waiting for it to appear |
+| `/ledger clearcameras` | Remove every camera around you |
 
 ### Gun presets
 
@@ -146,6 +183,36 @@ from the parts on demand, so rebalancing a part updates every gun already in the
 Nothing in the menu is a real item — clicks are intercepted before they reach the
 container and quick-move is disabled, so buttons cannot be pulled out or duplicated.
 
+## Firing
+
+Right-click fires. Hold it for automatics — Minecraft only reports a click on air once, so
+a held trigger is a short window that each click refreshes and the tick loop fires inside.
+**Sneak to aim**, which cuts spread to about a third. Sprinting and being airborne widen it.
+
+Rounds are hitscan, resolved the same tick, because the fastest builds fire twenty times a
+second and simulated projectiles at that rate would be a thousand entities a minute for no
+visible gain. Pellets, spread, damage, range, pierce, knockback, lifesteal, incendiary and
+blast all come from the merged stats, so the balance pass that governs the bench governs
+the bullets.
+
+Headshots multiply damage and pop a crit. Explosions do their own falloff rather than
+calling vanilla's, which would grind the terrain into craters. **Reloading starts on its
+own** when the magazine runs dry — there is no key to learn and no way to be stuck holding
+an empty gun.
+
+## The cameras
+
+Small observers that appear in the trees and in dark places underground, hanging with the
+lens angled down.
+
+They do nothing. They do not track you, report you, or react. That is the whole feature:
+the book has been implying for several volumes that something is watching, and a camera
+that visibly reacted would answer the question, whereas one that simply exists leaves it
+open. The record is kept whether or not any camera can see you.
+
+Each is an invisible armour stand wearing an observer block, so no resource pack is needed.
+`models/camera.bbmodel` is the authored model if you want to replace the look.
+
 ## The ending
 
 At **10,000 interactions across the world** — everyone's mining counts toward the same
@@ -165,10 +232,8 @@ everyone present.
 
 ## Not built yet
 
-- **Cameras** — small watchers on trees and in caves that turn to face you. The book
-  already hints at them and `models/camera.bbmodel` is authored, but nothing spawns yet.
-- **Gun firing** — the bench merges guns and the stats are all real, but the shooting
-  engine was Bukkit-only and did not survive the move to Fabric.
+Nothing major. The Witness and the cow have been built but not yet watched running in a
+live world.
 
 ## Models
 

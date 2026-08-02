@@ -52,6 +52,10 @@ public final class LedgerCommands {
                     // PermissionSet, and this is a demo hook, not an admin tool.
                     .then(Commands.literal("cow")
                             .executes(context -> summonCow(context.getSource())))
+                    .then(Commands.literal("camera")
+                            .executes(context -> placeCamera(context.getSource())))
+                    .then(Commands.literal("clearcameras")
+                            .executes(context -> clearCameras(context.getSource())))
                     .then(Commands.literal("witness")
                             .executes(context -> summonWitness(context.getSource())))
                     .then(Commands.literal("stopwitness")
@@ -192,6 +196,25 @@ public final class LedgerCommands {
     private static int stopWitness(CommandSourceStack source) {
         Ledger.witness().stop();
         source.sendSuccess(() -> Component.literal("The Witness is dismissed.")
+                .withStyle(ChatFormatting.GRAY), false);
+        return 1;
+    }
+
+    private static int placeCamera(CommandSourceStack source) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        if (!Ledger.cameras().placeNear(player)) {
+            source.sendFailure(Component.literal("Nowhere around here to put one."));
+            return 0;
+        }
+        source.sendSuccess(() -> Component.literal("Something is watching now.")
+                .withStyle(ChatFormatting.DARK_GRAY), false);
+        return 1;
+    }
+
+    private static int clearCameras(CommandSourceStack source) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        int removed = Ledger.cameras().clear(player);
+        source.sendSuccess(() -> Component.literal("Removed " + removed + " nearby.")
                 .withStyle(ChatFormatting.GRAY), false);
         return 1;
     }
