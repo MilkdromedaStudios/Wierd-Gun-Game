@@ -52,6 +52,10 @@ public final class LedgerCommands {
                     // PermissionSet, and this is a demo hook, not an admin tool.
                     .then(Commands.literal("cow")
                             .executes(context -> summonCow(context.getSource())))
+                    .then(Commands.literal("witness")
+                            .executes(context -> summonWitness(context.getSource())))
+                    .then(Commands.literal("stopwitness")
+                            .executes(context -> stopWitness(context.getSource())))
                     .then(Commands.literal("gun")
                             .then(Commands.argument("preset", StringArgumentType.word())
                                     .suggests(PRESETS)
@@ -172,6 +176,23 @@ public final class LedgerCommands {
         }
         source.sendSuccess(() -> Component.literal("A cow wanders in.").withStyle(ChatFormatting.GRAY), false);
         TheCow.scheduleTurn(level, cow, TheCow.PATIENCE);
+        return 1;
+    }
+
+    /** Wakes the Witness on demand rather than waiting for 10,000 interactions. */
+    private static int summonWitness(CommandSourceStack source) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        if (!Ledger.witness().summon(player)) {
+            source.sendFailure(Component.literal("The Witness is already here."));
+            return 0;
+        }
+        return 1;
+    }
+
+    private static int stopWitness(CommandSourceStack source) {
+        Ledger.witness().stop();
+        source.sendSuccess(() -> Component.literal("The Witness is dismissed.")
+                .withStyle(ChatFormatting.GRAY), false);
         return 1;
     }
 
