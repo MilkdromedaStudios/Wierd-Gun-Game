@@ -128,3 +128,14 @@ Named honestly, because the design is settled but the code is not written:
 Blockbench). The Witness is intended to be assembled at runtime from block-display
 entities using each player's own mined blocks, so its file is a silhouette reference
 rather than a rig.
+
+## Screenshots
+
+Captured from the Fabric dev client (`./gradlew runClient`) running Minecraft 26.2
+headless, under Xvfb with software GL.
+
+| | |
+| --- | --- |
+| ![Loaded on 26.2](screenshots/01-loaded-on-26.2.png) | The title screen reading **Minecraft 26.2 (Modded)** — Ledger loaded |
+| ![Book delivered](screenshots/02-book-delivered.png) | `/ledger book` puts the volume in the first free hotbar slot, with the delivery line in chat |
+| ![The Earth book](screenshots/03-earth-book-page-1.png) | Volume 1, page 1. Later pages print the player's real recorded figures |
