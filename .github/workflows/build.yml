@@ -38,41 +38,66 @@ jobs:
       - name: Build and test
         run: ./gradlew build --no-daemon --stacktrace
 
-      - name: Show what was built
-        run: ls -lh builds/
+      - name: Identify the jar
+        id: jar
+        run: |
+          # The sources jar lands here too and is not the mod, so it is excluded.
+          path=$(find builds -maxdepth 1 -name 'ledger-*.jar' ! -name '*-sources.jar' | head -1)
+          if [ -z "$path" ]; then
+            echo "No mod jar was produced." >&2
+            exit 1
+          fi
+          echo "path=$path" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$path")" >> "$GITHUB_OUTPUT"
+          ls -lh builds/
 
       - name: Upload jar as an artifact
         uses: actions/upload-artifact@v4
         with:
           name: ledger-jar
-          path: |
-            builds/ledger-*.jar
-            !builds/*-sources.jar
+          path: ${{ steps.jar.outputs.path }}
           if-no-files-found: error
 
-      # Commits the freshly built jar into /builds so the current build is
-      # always browsable in the repo. The [skip ci] marker in the message is
-      # what stops this retriggering the workflow — a paths-ignore filter was
-      # tried first and suppressed the run entirely, so it is deliberately not
-      # used here. Skipped for pull requests from forks, which cannot push back.
-      - name: Commit the jar to /builds
+      # Keeps /builds holding the current jar so it is browsable in the repo.
+      # This usually reports no change, because a code commit is normally made
+      # with a locally built jar already in it; that is the step working, not
+      # failing. It matters when someone pushes source without building.
+      - name: Replace the jar in /builds
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Only the loadable mod jar. The glob has to exclude the sources jar
-          # explicitly: --force overrides .gitignore, so the ignore rule alone
-          # does not keep it out.
-          jar=$(find builds -maxdepth 1 -name 'ledger-*.jar' ! -name '*-sources.jar' | head -1)
-          if [ -z "$jar" ]; then
-            echo "No mod jar was produced." >&2
-            exit 1
-          fi
-          echo "Committing $jar"
-          git add --force "$jar"
+          # --force overrides .gitignore, so the sources jar must be excluded by
+          # path rather than relying on the ignore rule.
+          git add --force "${{ steps.jar.outputs.path }}"
           if git diff --staged --quiet; then
-            echo "Jar unchanged; nothing to commit."
+            echo "The committed jar already matches this build."
           else
+            echo "Updating the jar in /builds."
             git commit -m "Build ledger jar into /builds [skip ci]"
             git push origin HEAD:${{ github.head_ref || github.ref_name }}
           fi
+
+      # Every successful build on a branch is published as its own release, so
+      # there is always a downloadable jar that is not buried in the git tree.
+      - name: Publish a release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="build-${{ github.run_number }}"
+          title="Ledger build ${{ github.run_number }}"
+          notes=$(printf 'Automated build of `%s`.\n\nCommit: %s\nBranch: `%s`\n\nDrop the jar in your server or client `mods/` folder alongside Fabric API. Requires Minecraft 26.2 and Java 25.' \
+            "${{ steps.jar.outputs.name }}" "${{ github.sha }}" "${{ github.ref_name }}")
+
+          # A re-run of the same build number would collide, so replace rather
+          # than fail on an existing tag.
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "${{ steps.jar.outputs.path }}" --clobber
+          else
+            gh release create "$tag" "${{ steps.jar.outputs.path }}" \
+              --title "$title" \
+              --notes "$notes" \
+              --target "${{ github.sha }}"
+          fi
+          echo "Released as $tag"

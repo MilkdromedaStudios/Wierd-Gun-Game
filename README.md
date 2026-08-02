@@ -31,7 +31,19 @@ Finished jars land in **`builds/`**. The one you want is:
 Ledger is entirely server-side logic, so no client install is needed. Only the mod jar is
 committed to the repo; the sources jar is a local build product.
 
-CI builds and tests on every push (`.github/workflows/build.yml`).
+CI builds and tests on every push and pull request (`.github/workflows/build.yml`), and on
+every push it also:
+
+- replaces `builds/ledger-1.0.0.jar` in the repo so the current jar is browsable
+- attaches the jar to the workflow run as an artifact
+- **publishes a GitHub Release** tagged `build-<number>` with the jar attached, so there is
+  always a plain download link under
+  [Releases](https://github.com/MilkdromedaStudios/Wierd-Gun-Game/releases)
+
+If the "Replace the jar in /builds" step reports *"The committed jar already matches this
+build"*, that is the step working: a code commit made with a locally built jar already
+contains the right binary. It only has something to do when source is pushed without a
+build.
 
 ### Fabric on 26.2
 
