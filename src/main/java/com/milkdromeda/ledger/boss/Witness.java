@@ -167,6 +167,26 @@ public final class Witness {
         return core;
     }
 
+    /**
+     * Whether a hit on this entity should count as a hit on the Witness.
+     * <p>
+     * The halo is what you can see and what you will aim at, so shooting a block
+     * it is wearing has to hurt it. Without this the fight is unwinnable: the
+     * stands are invulnerable, they orbit between you and the core, and every
+     * round stops on one of them.
+     */
+    public boolean isBody(LivingEntity entity) {
+        if (entity == core) {
+            return true;
+        }
+        for (ArmorStand stand : halo) {
+            if (stand == entity) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Drives the body, the stages and the attacks. Called every server tick. */
     public void tick() {
         if (finished) {

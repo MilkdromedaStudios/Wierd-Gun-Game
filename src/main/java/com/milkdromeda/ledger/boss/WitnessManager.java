@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
 
 /**
  * Owns the one Witness that can exist at a time, and decides when it wakes.
@@ -56,6 +57,28 @@ public final class WitnessManager {
 
     public boolean isActive() {
         return active != null;
+    }
+
+    /**
+     * Where a hit on {@code target} should actually land.
+     * <p>
+     * Rounds that strike the Witness's halo are moved onto its core, so the
+     * boss's hitbox is the whole three-metre wheel of blocks rather than the
+     * invisible entity at the middle of it.
+     *
+     * @return the core when the target is part of the active Witness, otherwise
+     *         the target unchanged
+     */
+    public LivingEntity resolveTarget(LivingEntity target) {
+        if (active != null && !active.isFinished() && active.isBody(target)) {
+            return active.core();
+        }
+        return target;
+    }
+
+    /** Whether this entity is part of the active Witness, halo included. */
+    public boolean isBody(LivingEntity target) {
+        return active != null && !active.isFinished() && active.isBody(target);
     }
 
     public void stop() {

@@ -1,5 +1,6 @@
 package com.milkdromeda.ledger.combat;
 
+import com.milkdromeda.ledger.Ledger;
 import com.milkdromeda.ledger.gun.GunStats;
 import com.milkdromeda.ledger.gun.GunTrait;
 import net.minecraft.core.particles.ParticleTypes;
@@ -17,6 +18,8 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -114,8 +117,7 @@ public final class ShotEngine {
             EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
                     level, shooter, origin, limit,
                     new AABB(origin, limit).inflate(1.0),
-                    candidate -> candidate.isAlive() && candidate != shooter
-                            && candidate instanceof LivingEntity,
+                    ShotEngine::shootable,
                     HITBOX_MARGIN);
 
             if (entityHit != null) {
@@ -143,9 +145,29 @@ public final class ShotEngine {
         }
     }
 
+    /**
+     * Whether a round should stop on this entity at all.
+     * <p>
+     * Invulnerable entities are skipped, or the scenery would eat your bullets:
+     * a camera hanging in a tree is an armour stand, and so is every block in
+     * the Witness's halo. The Witness is the exception — its halo is what you
+     * can see and what you will aim at, so those rounds have to land.
+     */
+    private static boolean shootable(Entity candidate) {
+        if (!candidate.isAlive() || !(candidate instanceof LivingEntity living)) {
+            return false;
+        }
+        if (Ledger.witness().isBody(living)) {
+            return true;
+        }
+        return !candidate.isInvulnerable();
+    }
+
     /** Applies damage and every on-hit trait the gun carries. */
     private static void hit(ServerLevel level, ServerPlayer shooter, GunStats stats,
-                            LivingEntity target, Vec3 point) {
+                            LivingEntity struck, Vec3 point) {
+        // A hit on the Witness's halo is a hit on the Witness.
+        LivingEntity target = Ledger.witness().resolveTarget(struck);
         double damage = stats.damage();
 
         // A hit above the eyeline counts as a headshot.
@@ -194,14 +216,21 @@ public final class ShotEngine {
                 SoundSource.PLAYERS, 1.2f, 1.0f);
 
         AABB blast = new AABB(centre, centre).inflate(radius);
-        for (Entity entity : level.getEntities(shooter, blast, candidate -> candidate instanceof LivingEntity)) {
+        Set<LivingEntity> caught = new HashSet<>();
+        for (Entity entity : level.getEntities(shooter, blast, ShotEngine::shootable)) {
             double distance = entity.position().distanceTo(centre);
             if (distance > radius) {
                 continue;
             }
+            // The halo collapses onto the core here too, so a rocket into a wheel
+            // of twenty-four blocks is one blast on the Witness, not twenty-four.
+            LivingEntity target = Ledger.witness().resolveTarget((LivingEntity) entity);
+            if (!caught.add(target)) {
+                continue;
+            }
             double falloff = 1.0 - distance / radius;
-            entity.invulnerableTime = 0;
-            entity.hurtServer(level, level.damageSources().explosion(shooter, shooter),
+            target.invulnerableTime = 0;
+            target.hurtServer(level, level.damageSources().explosion(shooter, shooter),
                     (float) (stats.explosionPower() * 3.2 * falloff));
         }
     }
