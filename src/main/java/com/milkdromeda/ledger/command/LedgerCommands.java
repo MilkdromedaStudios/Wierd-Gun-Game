@@ -7,6 +7,8 @@ import com.milkdromeda.ledger.gun.GunPart;
 import com.milkdromeda.ledger.gun.GunPreset;
 import com.milkdromeda.ledger.gun.PartRegistry;
 import com.milkdromeda.ledger.gun.PartSection;
+import com.milkdromeda.ledger.boss.TheCow;
+import com.milkdromeda.ledger.earth.EarthBook;
 import com.milkdromeda.ledger.menu.GunBenchMenu;
 import com.milkdromeda.ledger.watch.WatchRecord;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -45,6 +47,11 @@ public final class LedgerCommands {
                     .then(Commands.literal("record").executes(context -> showRecord(context.getSource())))
                     .then(Commands.literal("parts").executes(context -> listParts(context.getSource())))
                     .then(Commands.literal("random").executes(context -> giveRandom(context.getSource())))
+                    .then(Commands.literal("book").executes(context -> giveBook(context.getSource())))
+                    // No permission gate: 26.2 swapped integer levels for a
+                    // PermissionSet, and this is a demo hook, not an admin tool.
+                    .then(Commands.literal("cow")
+                            .executes(context -> summonCow(context.getSource())))
                     .then(Commands.literal("gun")
                             .then(Commands.argument("preset", StringArgumentType.word())
                                     .suggests(PRESETS)
@@ -141,6 +148,30 @@ public final class LedgerCommands {
         }
         source.sendSuccess(() -> Component.literal("  total interactions: " + record.totalInteractions())
                 .withStyle(ChatFormatting.WHITE), false);
+        return 1;
+    }
+
+    /** Hands over the next volume early, for reading it without the grind. */
+    private static int giveBook(CommandSourceStack source) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        WatchRecord record = Ledger.watch().of(player);
+        long volume = Math.max(1, record.booksReceived() + 1);
+        EarthBook.deliver(player, record, volume);
+        record.recordBook(record.totalInteractions());
+        return 1;
+    }
+
+    /** Runs the ending on demand, because waiting for 10,000 to test it is unreasonable. */
+    private static int summonCow(CommandSourceStack source) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        net.minecraft.server.level.ServerLevel level = player.level();
+        net.minecraft.world.entity.Entity cow = TheCow.arrive(level, player.blockPosition().above());
+        if (cow == null) {
+            source.sendFailure(Component.literal("The cow declined to appear."));
+            return 0;
+        }
+        source.sendSuccess(() -> Component.literal("A cow wanders in.").withStyle(ChatFormatting.GRAY), false);
+        TheCow.scheduleTurn(level, cow, TheCow.PATIENCE);
         return 1;
     }
 

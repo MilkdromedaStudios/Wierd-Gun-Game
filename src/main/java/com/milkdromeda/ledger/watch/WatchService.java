@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.milkdromeda.ledger.Ledger;
+import com.milkdromeda.ledger.earth.EarthBook;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
@@ -90,7 +91,7 @@ public final class WatchService {
         PlayerBlockBreakEvents.AFTER.register((level, player, pos, state, blockEntity) -> {
             if (player instanceof ServerPlayer serverPlayer) {
                 of(serverPlayer).recordMined(BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString());
-                dirty = true;
+                after(serverPlayer);
             }
         });
 
@@ -102,7 +103,7 @@ public final class WatchService {
                 ItemStack stack = player.getItemInHand(hand);
                 if (stack.getItem() instanceof BlockItem) {
                     of(serverPlayer).recordPlaced(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
-                    dirty = true;
+                    after(serverPlayer);
                 }
             }
             return InteractionResult.PASS;
@@ -115,7 +116,7 @@ public final class WatchService {
                 ItemStack stack = player.getItemInHand(hand);
                 if (!stack.isEmpty() && !(stack.getItem() instanceof BlockItem)) {
                     of(serverPlayer).recordUsed(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
-                    dirty = true;
+                    after(serverPlayer);
                 }
             }
             return InteractionResult.PASS;
@@ -164,13 +165,22 @@ public final class WatchService {
             long blocks = (long) Math.floor(distance);
             if (blocks > 0) {
                 of(player).addWalked(blocks);
-                dirty = true;
+                after(player);
             }
         }
     }
 
     /** One position sample. The dimension is part of it so portals do not read as sprinting. */
     private record Sample(String dimension, double x, double z) { }
+
+    /**
+     * Called after anything is written down. Recording is never just recording:
+     * an entry can tip a player over the threshold for their next book.
+     */
+    private void after(ServerPlayer player) {
+        dirty = true;
+        EarthBook.considerDelivery(player, of(player));
+    }
 
     public void died(ServerPlayer player) {
         of(player).recordDeath();

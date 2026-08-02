@@ -1,10 +1,12 @@
 package com.milkdromeda.ledger;
 
+import com.milkdromeda.ledger.boss.TheCow;
 import com.milkdromeda.ledger.command.LedgerCommands;
 import com.milkdromeda.ledger.menu.BenchStore;
 import com.milkdromeda.ledger.watch.WatchService;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +40,7 @@ public final class Ledger implements ModInitializer {
         watch.register();
         benches = new BenchStore();
         LedgerCommands.register();
+        ServerTickEvents.END_SERVER_TICK.register(TheCow::tick);
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             watch.load(server);
