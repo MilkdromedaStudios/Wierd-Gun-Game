@@ -2,6 +2,7 @@ package com.milkdromeda.ledger.menu;
 
 import com.milkdromeda.ledger.gun.GunBlueprint;
 import com.milkdromeda.ledger.gun.GunItem;
+import com.milkdromeda.ledger.item.LedgerItems;
 import com.milkdromeda.ledger.gun.GunPart;
 import com.milkdromeda.ledger.gun.GunPreset;
 import com.milkdromeda.ledger.gun.GunStats;
@@ -212,21 +213,21 @@ public final class GunBenchMenu extends ChestMenu {
         PartSection[] sections = PartSection.values();
         for (int i = 0; i < sections.length; i++) {
             GunPart part = blueprint.get(sections[i]);
-            put(SECTION_SLOTS[i], part.icon(), sections[i].displayName() + ": " + part.name(),
+            put(SECTION_SLOTS[i], "part_" + part.id(), sections[i].displayName() + ": " + part.name(),
                     List.of(part.flavor(), "", "Click to change"));
         }
 
         ItemStack preview = GunItem.merge(blueprint);
         container.setItem(PREVIEW_SLOT, preview);
 
-        put(PRESETS_SLOT, "minecraft:chest", "Presets",
+        put(PRESETS_SLOT, "icon_presets", "Presets",
                 List.of("RPG, AK, sniper, shotgun, Maxigun…", "", "Click to browse"));
-        put(RANDOM_SLOT, "minecraft:ender_pearl", "Randomise",
+        put(RANDOM_SLOT, "icon_random", "Randomise",
                 List.of("Roll all six sections at once."));
-        put(MERGE_SLOT, "minecraft:nether_star", "MERGE INTO GUN",
+        put(MERGE_SLOT, "icon_merge", "MERGE INTO GUN",
                 List.of("Combine all six parts into", blueprint.displayName(),
                         "", "Power " + stats.powerScore() + " • DPS " + Math.round(stats.sustainedDps())));
-        put(RESET_SLOT, "minecraft:barrier", "Reset", List.of("Back to default parts."));
+        put(RESET_SLOT, "icon_reset", "Reset", List.of("Back to default parts."));
     }
 
     private void renderSection() {
@@ -240,9 +241,9 @@ public final class GunBenchMenu extends ChestMenu {
             lore.addAll(part.perks());
             lore.add("");
             lore.add(part.id().equals(fitted.id()) ? "✔ Fitted" : "Click to fit");
-            put(PART_SLOTS[i], part.icon(), part.name(), lore);
+            put(PART_SLOTS[i], "part_" + part.id(), part.name(), lore);
         }
-        put(BACK_SLOT, "minecraft:arrow", "Back", List.of("Return to the bench"));
+        put(BACK_SLOT, "icon_back", "Back", List.of("Return to the bench"));
     }
 
     private void renderPresets() {
@@ -250,17 +251,20 @@ public final class GunBenchMenu extends ChestMenu {
         for (int i = 0; i < presets.size() && i < PRESET_SLOTS.length; i++) {
             GunPreset preset = presets.get(i);
             GunStats stats = preset.toBlueprint().stats();
-            put(PRESET_SLOTS[i], preset.icon(), preset.name(), List.of(
+            put(PRESET_SLOTS[i], GunItem.modelFor(preset.toBlueprint()), preset.name(), List.of(
                     preset.description(), "",
                     stats.fireMode().displayName() + " • DPS " + Math.round(stats.sustainedDps())
                             + " • Mag " + stats.magSize(),
                     "", "Left-click to take", "Right-click to load onto the bench"));
         }
-        put(BACK_SLOT, "minecraft:arrow", "Back", List.of("Return to the bench"));
+        put(BACK_SLOT, "icon_back", "Back", List.of("Return to the bench"));
     }
 
-    private void put(int slot, String itemId, String name, List<String> lore) {
-        ItemStack stack = new ItemStack(GunItem.iconItem(itemId));
+    /** @param variant a generated model name, e.g. {@code part_red_dot} or {@code gun_gatling} */
+    private void put(int slot, String variant, String name, List<String> lore) {
+        ItemStack stack = variant.startsWith("gun_")
+                ? LedgerItems.withModel(LedgerItems.GUN, variant)
+                : GunItem.icon(variant);
         stack.set(DataComponents.CUSTOM_NAME,
                 Component.literal(name).withStyle(ChatFormatting.YELLOW));
         stack.set(DataComponents.LORE, new ItemLore(lore.stream()

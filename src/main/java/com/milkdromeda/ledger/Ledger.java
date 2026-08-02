@@ -5,6 +5,7 @@ import com.milkdromeda.ledger.combat.GunController;
 import com.milkdromeda.ledger.watch.Cameras;
 import com.milkdromeda.ledger.boss.WitnessManager;
 import com.milkdromeda.ledger.command.LedgerCommands;
+import com.milkdromeda.ledger.item.LedgerItems;
 import com.milkdromeda.ledger.menu.BenchStore;
 import com.milkdromeda.ledger.watch.WatchService;
 import net.fabricmc.api.ModInitializer;
@@ -54,6 +55,9 @@ public final class Ledger implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        // Items first: the registries freeze shortly after this returns.
+        LedgerItems.bootstrap();
+
         watch = new WatchService();
         watch.register();
         benches = new BenchStore();

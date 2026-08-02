@@ -1,5 +1,6 @@
 package com.milkdromeda.ledger.watch;
 
+import com.milkdromeda.ledger.item.LedgerItems;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Rotations;
@@ -14,7 +15,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -32,9 +32,10 @@ import java.util.concurrent.ThreadLocalRandom;
  * kept by {@link WatchService} regardless of whether any camera can see you,
  * which is the joke.
  * <p>
- * Each one is an invisible armour stand wearing an observer block on its head,
- * so no client mod or resource pack is required. {@code models/camera.bbmodel}
- * is the authored model for anyone who wants to replace the look.
+ * Each one is an invisible armour stand wearing {@code ledger:camera} on its
+ * head — a purpose-built three-part model, not a borrowed block, so the thing
+ * in the tree actually looks like a camera. {@code models/camera.bbmodel} is
+ * the same shape in Blockbench form for anyone who wants to edit it.
  */
 public final class Cameras {
 
@@ -153,7 +154,7 @@ public final class Cameras {
         camera.setCustomNameVisible(false);
         camera.setHeadPose(LOOKING_DOWN);
         camera.setYRot(ThreadLocalRandom.current().nextFloat() * 360.0f);
-        camera.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.OBSERVER));
+        camera.setItemSlot(EquipmentSlot.HEAD, new ItemStack(LedgerItems.CAMERA));
     }
 
     /** Removes every camera near a player. Used by the debug command. */

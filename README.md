@@ -28,8 +28,11 @@ Finished jars land in **`builds/`**. The one you want is:
 | **`builds/ledger-1.0.0.jar`** | **Yes — this is the mod.** Drop it in your server's `mods/` folder alongside Fabric API |
 | `builds/ledger-1.0.0-sources.jar` | No. Source code for IDEs only; the loader will not read it as a mod |
 
-Ledger is entirely server-side logic, so no client install is needed. Only the mod jar is
-committed to the repo; the sources jar is a local build product.
+**Install it on the client too.** Ledger used to be pure server-side logic riding on
+vanilla items, and a vanilla client could join without it. It now ships its own items and
+its own art (see [Art](#art)), so a client without the mod would see missing models where
+the guns are. Only the mod jar is committed to the repo; the sources jar is a local build
+product.
 
 CI builds and tests on every push and pull request (`.github/workflows/build.yml`), and on
 every push it also:
@@ -180,8 +183,15 @@ the book has been implying for several volumes that something is watching, and a
 that visibly reacted would answer the question, whereas one that simply exists leaves it
 open. The record is kept whether or not any camera can see you.
 
-Each is an invisible armour stand wearing an observer block, so no resource pack is needed.
-`models/camera.bbmodel` is the authored model if you want to replace the look.
+Each is an invisible armour stand wearing `ledger:camera` on its head — a purpose-built
+three-part model (shell, lens barrel, bracket), so the thing in the tree actually looks like
+a camera. `models/camera.bbmodel` is the same shape in Blockbench form if you want to edit
+it.
+
+They will only place somewhere with something to bolt to: a ceiling, a trunk or a cave wall
+within reach. `/ledger camera` is the exception and will hang one in open air ahead of you
+if there is no anchor, because a debug command that silently does nothing is worse than a
+camera somewhere implausible.
 
 ## The ending
 
@@ -205,11 +215,43 @@ everyone present.
 Nothing major. The Witness and the cow have been built but not yet watched running in a
 live world.
 
-## Models
+## Art
 
-`models/` holds hand-authored Blockbench files (`.bbmodel`, openable directly in
-Blockbench). The Witness is intended to be assembled at runtime from block-display
-entities using each player's own mined blocks, so its file is a silhouette reference
+Every sprite the mod uses is its own. Nothing borrows a vanilla item any more — guns were
+hoes, barrels were blaze rods, cameras were observer blocks, and it all looked like what it
+was: placeholders.
+
+Everything under `src/main/resources/assets/ledger/` is **generated output**. The art is
+authored in `tools/GenerateAssets.java` and drawn from there:
+
+```bash
+java tools/GenerateAssets.java     # rewrites every texture, model and item definition
+```
+
+Writing it as a program rather than in an image editor buys three things: the art is
+reviewable in a diff, a palette change is one edit rather than sixty, and every sprite goes
+through the same outliner and shading pass — which is most of what makes a set of 16×16
+icons look like a set instead of a pile.
+
+| What | How many | How it is drawn |
+| --- | --- | --- |
+| Guns | 10 | One per barrel, since the barrel is what changes a gun's outline. Everything behind the muzzle is shared so the family reads as a family |
+| Parts | 60 | Each section's silhouette in that part's own colours, with a small distinguishing mark on top |
+| Menu buttons | 5 | Merge, reset, back, randomise, presets |
+| Camera | 1 | A three-part 3D model — shell, lens barrel, bracket — worn on the armour stand's head |
+
+Only **three items** are registered (`ledger:gun`, `ledger:icon`, `ledger:camera`); the look
+is picked by a `custom_model_data` string, so the item definitions in
+`assets/ledger/items/` do the dispatch. Adding a part means adding a sprite, not a registry
+entry.
+
+`AssetCoverageTest` walks every part, barrel and preset back through that chain — item
+definition, model, texture — and fails the build if any link is missing, because a
+forgotten regeneration otherwise shows up only as a purple-and-black cube in the menu.
+
+`models/` additionally holds hand-authored Blockbench files (`.bbmodel`, openable directly
+in Blockbench) for the camera and the Witness. The Witness is assembled at runtime from
+armour stands wearing each player's own mined blocks, so its file is a silhouette reference
 rather than a rig.
 
 ## Screenshots
@@ -222,6 +264,12 @@ headless, under Xvfb with software GL.
 | ![Loaded on 26.2](screenshots/01-loaded-on-26.2.png) | The title screen reading **Minecraft 26.2 (Modded)** — Ledger loaded |
 | ![Book delivered](screenshots/02-book-delivered.png) | `/ledger book` puts the volume in the first free hotbar slot, with the delivery line in chat |
 | ![The Earth book](screenshots/03-earth-book-page-1.png) | Volume 1, page 1. Later pages print the player's real recorded figures |
+| ![The gun bench](screenshots/04-gun-bench.png) | `/guns` — six section buttons, a live preview of the merged gun, and the merge tooltip reading its real power and DPS |
+| ![Barrels](screenshots/05-barrel-parts.png) | The barrel page: ten barrels, ten silhouettes |
+| ![A gun in hand](screenshots/06-gun-in-hand.png) | The RPG held, with six merged guns along the hotbar |
+| ![Firing](screenshots/08-firing.png) | Mid-burst on an iron golem: tracer, muzzle smoke and the live ammo counter |
+| ![A camera](screenshots/07-camera.png) | One of the cameras, bolted to a cliff, lens angled at the floor. It does nothing |
+| ![Every sprite](screenshots/09-sprite-sheet.png) | All 76 generated sprites at 6×. The scattered tiles in the top-left corner are the camera's UV sheet — it is a 3D model, not an icon |
 
 ## How the screenshots were made
 

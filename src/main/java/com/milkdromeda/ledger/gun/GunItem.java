@@ -1,14 +1,11 @@
 package com.milkdromeda.ledger.gun;
 
+import com.milkdromeda.ledger.item.LedgerItems;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemLore;
 
@@ -35,20 +32,19 @@ public final class GunItem {
     private GunItem() {
     }
 
-    /** The item a gun rides on. Server-side only, so this stands in for a model. */
-    private static Item baseItem(GunStats stats) {
-        return switch (stats.fireMode()) {
-            case AUTO -> Items.DIAMOND_HOE;
-            case BURST -> Items.GOLDEN_HOE;
-            case CHARGE, SPINUP -> Items.NETHERITE_HOE;
-            case SEMI -> Items.IRON_HOE;
-        };
+    /**
+     * The model a merged gun wears. The barrel decides it, because the barrel is
+     * what changes a gun's outline — a stubby snubnose and a metre of rifled
+     * steel should not share a picture.
+     */
+    public static String modelFor(GunBlueprint blueprint) {
+        return "gun_" + blueprint.get(PartSection.BARREL).id();
     }
 
     /** Merges a blueprint's six parts into one finished gun. */
     public static ItemStack merge(GunBlueprint blueprint) {
         GunStats stats = blueprint.stats();
-        ItemStack stack = new ItemStack(baseItem(stats));
+        ItemStack stack = LedgerItems.withModel(LedgerItems.GUN, modelFor(blueprint));
 
         CompoundTag tag = new CompoundTag();
         tag.putString(TAG_PARTS, blueprint.serialize());
@@ -164,12 +160,12 @@ public final class GunItem {
         return String.format("%.1f", value);
     }
 
-    /** Resolves a part's icon id to a real item, falling back to a barrier if it is unknown. */
-    public static Item iconItem(String registryId) {
-        Identifier key = Identifier.tryParse(registryId);
-        if (key == null) {
-            return Items.BARRIER;
-        }
-        return BuiltInRegistries.ITEM.getOptional(key).orElse(Items.BARRIER);
+    /**
+     * A menu button wearing one of the generated icons.
+     *
+     * @param variant a model name such as {@code part_red_dot} or {@code icon_merge}
+     */
+    public static ItemStack icon(String variant) {
+        return LedgerItems.withModel(LedgerItems.ICON, variant);
     }
 }

@@ -1,0 +1,50 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "gun_long_rifled",
+        "model": { "type": "minecraft:model", "model": "ledger:item/gun_long_rifled" }
+      },
+      {
+        "when": "gun_boomstick",
+        "model": { "type": "minecraft:model", "model": "ledger:item/gun_boomstick" }
+      },
+      {
+        "when": "gun_rpg_tube",
+        "model": { "type": "minecraft:model", "model": "ledger:item/gun_rpg_tube" }
+      },
+      {
+        "when": "gun_gatling",
+        "model": { "type": "minecraft:model", "model": "ledger:item/gun_gatling" }
+      },
+      {
+        "when": "gun_snubnose",
+        "model": { "type": "minecraft:model", "model": "ledger:item/gun_snubnose" }
+      },
+      {
+        "when": "gun_singularity",
+        "model": { "type": "minecraft:model", "model": "ledger:item/gun_singularity" }
+      },
+      {
+        "when": "gun_tesla_rod",
+        "model": { "type": "minecraft:model", "model": "ledger:item/gun_tesla_rod" }
+      },
+      {
+        "when": "gun_frostbite",
+        "model": { "type": "minecraft:model", "model": "ledger:item/gun_frostbite" }
+      },
+      {
+        "when": "gun_cursed_bone",
+        "model": { "type": "minecraft:model", "model": "ledger:item/gun_cursed_bone" }
+      },
+      {
+        "when": "gun_noodle",
+        "model": { "type": "minecraft:model", "model": "ledger:item/gun_noodle" }
+      }
+    ],
+    "fallback": { "type": "minecraft:model", "model": "ledger:item/gun_long_rifled" }
+  }
+}

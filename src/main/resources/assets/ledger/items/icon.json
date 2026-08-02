@@ -1,0 +1,270 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "part_snubnose",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_snubnose" }
+      },
+      {
+        "when": "part_long_rifled",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_long_rifled" }
+      },
+      {
+        "when": "part_boomstick",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_boomstick" }
+      },
+      {
+        "when": "part_rpg_tube",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_rpg_tube" }
+      },
+      {
+        "when": "part_gatling",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_gatling" }
+      },
+      {
+        "when": "part_noodle",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_noodle" }
+      },
+      {
+        "when": "part_tesla_rod",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_tesla_rod" }
+      },
+      {
+        "when": "part_frostbite",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_frostbite" }
+      },
+      {
+        "when": "part_cursed_bone",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_cursed_bone" }
+      },
+      {
+        "when": "part_singularity",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_singularity" }
+      },
+      {
+        "when": "part_iron_core",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_iron_core" }
+      },
+      {
+        "when": "part_redstone_reactor",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_redstone_reactor" }
+      },
+      {
+        "when": "part_blaze_heart",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_blaze_heart" }
+      },
+      {
+        "when": "part_ender_core",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_ender_core" }
+      },
+      {
+        "when": "part_tnt_core",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_tnt_core" }
+      },
+      {
+        "when": "part_amethyst_resonator",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_amethyst_resonator" }
+      },
+      {
+        "when": "part_slime_core",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_slime_core" }
+      },
+      {
+        "when": "part_nether_star_core",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_nether_star_core" }
+      },
+      {
+        "when": "part_goat_horn_core",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_goat_horn_core" }
+      },
+      {
+        "when": "part_chicken_core",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_chicken_core" }
+      },
+      {
+        "when": "part_duct_tape",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_duct_tape" }
+      },
+      {
+        "when": "part_rubber_grip",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_rubber_grip" }
+      },
+      {
+        "when": "part_bipod",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_bipod" }
+      },
+      {
+        "when": "part_angled_foregrip",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_angled_foregrip" }
+      },
+      {
+        "when": "part_vertical_foregrip",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_vertical_foregrip" }
+      },
+      {
+        "when": "part_honey_grip",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_honey_grip" }
+      },
+      {
+        "when": "part_rocket_grip",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_rocket_grip" }
+      },
+      {
+        "when": "part_squid_grip",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_squid_grip" }
+      },
+      {
+        "when": "part_golden_grip",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_golden_grip" }
+      },
+      {
+        "when": "part_skeleton_hand",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_skeleton_hand" }
+      },
+      {
+        "when": "part_stick_mag",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_stick_mag" }
+      },
+      {
+        "when": "part_extended_mag",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_extended_mag" }
+      },
+      {
+        "when": "part_drum_mag",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_drum_mag" }
+      },
+      {
+        "when": "part_ammo_belt",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_ammo_belt" }
+      },
+      {
+        "when": "part_rocket_rack",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_rocket_rack" }
+      },
+      {
+        "when": "part_shell_box",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_shell_box" }
+      },
+      {
+        "when": "part_bottomless_satchel",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_bottomless_satchel" }
+      },
+      {
+        "when": "part_nuke_mag",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_nuke_mag" }
+      },
+      {
+        "when": "part_hopper_feed",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_hopper_feed" }
+      },
+      {
+        "when": "part_soul_jar",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_soul_jar" }
+      },
+      {
+        "when": "part_iron_sights",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_iron_sights" }
+      },
+      {
+        "when": "part_red_dot",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_red_dot" }
+      },
+      {
+        "when": "part_holo",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_holo" }
+      },
+      {
+        "when": "part_sniper_scope",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_sniper_scope" }
+      },
+      {
+        "when": "part_thermal",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_thermal" }
+      },
+      {
+        "when": "part_laser_pointer",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_laser_pointer" }
+      },
+      {
+        "when": "part_googly_eyes",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_googly_eyes" }
+      },
+      {
+        "when": "part_seeker_eye",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_seeker_eye" }
+      },
+      {
+        "when": "part_cracked_monocle",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_cracked_monocle" }
+      },
+      {
+        "when": "part_target_computer",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_target_computer" }
+      },
+      {
+        "when": "part_wooden_stock",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_wooden_stock" }
+      },
+      {
+        "when": "part_tactical_stock",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_tactical_stock" }
+      },
+      {
+        "when": "part_anvil_stock",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_anvil_stock" }
+      },
+      {
+        "when": "part_skeleton_stock",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_skeleton_stock" }
+      },
+      {
+        "when": "part_slime_pad",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_slime_pad" }
+      },
+      {
+        "when": "part_booster_stock",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_booster_stock" }
+      },
+      {
+        "when": "part_cactus_stock",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_cactus_stock" }
+      },
+      {
+        "when": "part_cushion_stock",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_cushion_stock" }
+      },
+      {
+        "when": "part_jukebox_stock",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_jukebox_stock" }
+      },
+      {
+        "when": "part_void_stock",
+        "model": { "type": "minecraft:model", "model": "ledger:item/part_void_stock" }
+      },
+      {
+        "when": "icon_merge",
+        "model": { "type": "minecraft:model", "model": "ledger:item/icon_merge" }
+      },
+      {
+        "when": "icon_reset",
+        "model": { "type": "minecraft:model", "model": "ledger:item/icon_reset" }
+      },
+      {
+        "when": "icon_back",
+        "model": { "type": "minecraft:model", "model": "ledger:item/icon_back" }
+      },
+      {
+        "when": "icon_random",
+        "model": { "type": "minecraft:model", "model": "ledger:item/icon_random" }
+      },
+      {
+        "when": "icon_presets",
+        "model": { "type": "minecraft:model", "model": "ledger:item/icon_presets" }
+      }
+    ],
+    "fallback": { "type": "minecraft:model", "model": "ledger:item/part_snubnose" }
+  }
+}
