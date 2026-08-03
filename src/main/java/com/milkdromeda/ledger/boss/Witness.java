@@ -51,6 +51,15 @@ public final class Witness {
     private static final int HALO_SIZE = 24;
     private static final double HALO_RADIUS = 3.4;
 
+    /** Blocks per tick the core closes on you. Deliberately unhurried. */
+    private static final double DRIFT_SPEED = 0.055;
+
+    /** How far above your feet it wants to sit. */
+    private static final double HOVER = 2.6;
+
+    /** It stops here rather than pressing into your face, where nothing is visible. */
+    private static final double STANDOFF = 7.0;
+
     private final ServerLevel level;
     private final LivingEntity core;
     private final ServerBossEvent bar;
@@ -97,8 +106,15 @@ public final class Witness {
             core.getAttribute(Attributes.MAX_HEALTH).setBaseValue(health);
         }
         core.setHealth(health);
+        // The core is a magma cube only because something invisible had to hold
+        // the health bar. Left with its own AI it hops away like a slime, lands
+        // on the floor and drags its halo out of sight, which is neither
+        // frightening nor possible to shoot. It hangs still instead, and this
+        // class moves it.
+        core.setNoGravity(true);
         if (core instanceof Mob mob) {
             mob.setPersistenceRequired();
+            mob.setNoAi(true);
         }
 
         Witness witness = new Witness(level, core, blocksFrom(records), health);
@@ -201,6 +217,7 @@ public final class Witness {
         float fraction = Math.max(0.0f, core.getHealth() / maxHealth);
         bar.setProgress(fraction);
         updateStage(fraction);
+        drift();
         spinHalo();
 
         if (age % 60 == 0) {
@@ -209,6 +226,41 @@ public final class Witness {
         if (age % Math.max(20, 90 - stage * 20) == 0) {
             strike();
         }
+    }
+
+    /**
+     * Closes on the nearest player at walking pace and then hangs there.
+     * <p>
+     * Slow on purpose: the thing is a wall of blocks the size of a house, and it
+     * does not need to hurry. It also has to stay in front of whoever is
+     * shooting at it, or the fight is spent hunting for an invisible slime.
+     */
+    private void drift() {
+        ServerPlayer nearest = null;
+        double best = Double.MAX_VALUE;
+        for (ServerPlayer player : level.players()) {
+            double distance = player.distanceToSqr(core);
+            if (distance < best) {
+                best = distance;
+                nearest = player;
+            }
+        }
+        if (nearest == null) {
+            return;
+        }
+        // Nothing shoves it. Without gravity or AI there is nothing to damp the
+        // knockback a gun applies, so every round it takes would push it a little
+        // further away until the fight was happening at the edge of render
+        // distance. Clearing the velocity each tick makes this method the only
+        // thing that decides where it is.
+        core.setDeltaMovement(Vec3.ZERO);
+
+        Vec3 toPlayer = nearest.position().add(0.0, HOVER, 0.0).subtract(core.position());
+        if (toPlayer.length() <= STANDOFF) {
+            return;
+        }
+        Vec3 step = toPlayer.normalize().scale(DRIFT_SPEED);
+        core.teleportTo(core.getX() + step.x, core.getY() + step.y, core.getZ() + step.z);
     }
 
     /** The blocks orbit the core, faster and wider the angrier it gets. */

@@ -11,7 +11,7 @@ public class Drive {
 
     public static void main(String[] args) throws Exception {
         robot = new Robot();
-        robot.setAutoDelay(60);
+        robot.setAutoDelay(15);
         for (String step : args[0].split(";")) {
             // "cmd:" takes the rest of the step verbatim, so commands may contain commas.
             if (step.startsWith("cmd:")) {
@@ -24,6 +24,8 @@ public class Drive {
                 case "wait" -> Thread.sleep(Long.parseLong(bits[1]));
                 case "rclick" -> rclick(bits.length > 1 ? Integer.parseInt(bits[1]) : 90);
                 case "hold" -> hold(Long.parseLong(bits[1]));
+                case "mine" -> mine(Long.parseLong(bits[1]));
+                case "press" -> press(Integer.parseInt(bits[1]), Long.parseLong(bits[2]));
                 case "type" -> type(bits[1]);
                 case "key" -> tap(Integer.parseInt(bits[1]));
                 case "cmd" -> command(bits[1]);
@@ -53,6 +55,20 @@ public class Drive {
         robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
         Thread.sleep(ms);
         robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
+    }
+
+    /** Holds the left button down, which is how a block gets broken. */
+    static void mine(long ms) throws Exception {
+        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+        Thread.sleep(ms);
+        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+    }
+
+    /** Holds a key down, for walking and anything else that is not a tap. */
+    static void press(int keyCode, long ms) throws Exception {
+        robot.keyPress(keyCode);
+        Thread.sleep(ms);
+        robot.keyRelease(keyCode);
     }
 
     /** Opens chat with the slash key, types the rest, and sends it. */
@@ -112,9 +128,9 @@ public class Drive {
 
     static void tap(int keyCode) {
         robot.keyPress(keyCode);
-        robot.delay(40);
+        robot.delay(12);
         robot.keyRelease(keyCode);
-        robot.delay(40);
+        robot.delay(12);
     }
 
     static void shot(String path) throws Exception {

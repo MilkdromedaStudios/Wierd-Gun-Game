@@ -14,9 +14,33 @@ stay fun instead of round-ending.
 ![Title screen to a merged gun](screenshots/00-demo.gif)
 
 *Title screen → the world → `/guns` → a barrel, core, grip, magazine, sight and stock →
-**MERGE INTO GUN** → the Rapid Maxigun Mk.51 in hand, firing. Recorded from the real 26.2
-dev client running headless; the world-loading stretch is compressed, nothing else is.
-[How it was captured](#how-the-screenshots-were-made).*
+**MERGE INTO GUN** → the Rapid Maxigun Mk.51 in hand, firing.*
+
+### The full playthrough
+
+**[media/ledger-demo.mp4](media/ledger-demo.mp4)** — 2 minutes 53 seconds, 854×480 H.264,
+captured from the real 26.2 dev client.
+
+<video src="https://raw.githubusercontent.com/MilkdromedaStudios/Wierd-Gun-Game/claude/minecraft-roblox-gun-game-bnm952/media/ledger-demo.mp4" controls width="854"></video>
+
+| | |
+| --- | --- |
+| 0:00 | `/ledger record` — everything at zero |
+| 0:05 | Mining a stone block, then walking |
+| 0:20 | `/ledger record` again — **8 blocks mined, 67 blocks walked, 261 total interactions.** The record is real |
+| 0:42 | The Earth book turns up. Page 1: *"Hello. I have been keeping a record."* Page 2 prints the same figures back |
+| 1:00 | `/ledger gun maxigun`, a burst over the water |
+| 1:12 | `/ledger witness` — **THE WITNESS**, a wheel of the blocks you mined, hanging in the air. Boss bar, and it starts reading your held item back to you |
+| 1:20 | Fighting it with the Maxigun |
+| 2:20 | A cow wanders in. Seven seconds later: *"Moo."* and **You Died!** |
+
+**One honest caveat.** The Witness is not killed on camera. Guns damage it — the halo relay
+works, and a measured run took it 400 → 203 in eight seconds — but damage does not land
+reliably across a whole fight and I have not root-caused why. The ending in the clip is
+triggered with `/ledger cow` rather than by finishing the boss. See
+[Not built yet](#not-built-yet).
+
+[How all of this was captured](#how-the-screenshots-were-made).
 
 ---
 
@@ -223,11 +247,23 @@ everyone present.
 
 ## Not built yet
 
-The Witness and the cow have been built, and the Witness has since been made actually
-killable — its halo of twenty-four invulnerable armour stands used to absorb every round
-before it reached the core, so a hit anywhere on the halo is now moved onto the core and
-the boss's hitbox is the whole wheel of blocks you can see. Neither the fight nor the
-ending has been watched running in a live world yet, so treat that pair as untested.
+**The Witness fight is not finished.** It summons, it hangs in the air wearing the blocks
+you mined, it recites your held item, it pulls you in and hurts you, and its boss bar goes
+down when you shoot it — all of that is on video. What does not work is killing it: damage
+lands intermittently rather than every round. Three real causes have been found and fixed
+along the way, and there is at least one left:
+
+- its halo of twenty-four invulnerable armour stands absorbed every round before it reached
+  the core, so a hit anywhere on the halo is now moved onto the core — **fixed**
+- the core kept its slime AI, so it hopped away, landed on the floor and dragged the halo
+  out of sight — it now hovers and advances on you instead — **fixed**
+- with no gravity and no AI, nothing damped the knockback a gun applies, so each round it
+  took shoved it further away until the fight was at the edge of render distance — its
+  velocity is now cleared every tick — **fixed**
+- something still stops most rounds registering over a sustained burst — **open**
+
+The cow ending works and is on video, but it is reached with `/ledger cow`, not by killing
+the boss.
 
 ## Art
 
@@ -332,11 +368,25 @@ click,638,355;wait,2500;cmd:guns;wait,2500;click,530,225;hold,3000;shot,out.png
 `cmd:` opens chat with `/`, types the rest and presses Enter; `hold` holds right-click,
 which is how an automatic keeps firing.
 
-**4. The video, without a video tool.** There is no `ffmpeg` either, so the GIF at the top
-is made by two more small programs. `tools/Record.java` grabs the 854×480 viewport on a
-timer and writes downscaled frames; `tools/Gif.java` assembles them using the JDK's own GIF
-writer, which will do animation if you hand-build the metadata — a `GraphicControlExtension`
-for the frame delay and the NETSCAPE application extension for the loop.
+**4. The video.** `tools/Capture.java` grabs the 854×480 viewport on a timer and writes
+JPEG frames — JPEG rather than PNG purely for disk, since three minutes of 854×480 PNG is
+most of a gigabyte. A static `ffmpeg` from the `imageio-ffmpeg` wheel encodes them:
+
+```bash
+java tools/Capture.java frames 12 130        # 12 fps for 130 seconds
+ffmpeg -framerate 12 -i frames/%05d.jpg -c:v libx264 -crf 23 -pix_fmt yuv420p out.mp4
+```
+
+`media/ledger-demo.mp4` is four takes cut together. Splitting it up was not an aesthetic
+choice: a single long scripted run kept losing everything after its first mistake, and a
+Friends List prompt that the client raises unprompted swallowed a whole take's worth of
+clicks.
+
+**4b. The GIF, without a video tool at all.** The GIF at the top predates finding ffmpeg,
+and is made by two more small programs. `tools/Record.java` grabs downscaled frames;
+`tools/Gif.java` assembles them using the JDK's own GIF writer, which will do animation if
+you hand-build the metadata — a `GraphicControlExtension` for the frame delay and the
+NETSCAPE application extension for the loop.
 
 The one clever bit is that it drops frames that barely differ from the last one kept, with
 a cap on how many it will skip in a row. World loading takes a minute and a half of an
