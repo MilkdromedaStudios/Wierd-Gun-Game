@@ -11,6 +11,13 @@ Ledger also contains the gun bench it grew out of: **60 parts** across six secti
 combinable into **1,000,000 guns**, held inside a sustained-damage budget so wild builds
 stay fun instead of round-ending.
 
+![Title screen to a merged gun](screenshots/00-demo.gif)
+
+*Title screen → the world → `/guns` → a barrel, core, grip, magazine, sight and stock →
+**MERGE INTO GUN** → the Rapid Maxigun Mk.51 in hand, firing. Recorded from the real 26.2
+dev client running headless; the world-loading stretch is compressed, nothing else is.
+[How it was captured](#how-the-screenshots-were-made).*
+
 ---
 
 ## Building
@@ -184,9 +191,13 @@ that visibly reacted would answer the question, whereas one that simply exists l
 open. The record is kept whether or not any camera can see you.
 
 Each is an invisible armour stand wearing `ledger:camera` on its head — a purpose-built
-three-part model (shell, lens barrel, bracket), so the thing in the tree actually looks like
-a camera. `models/camera.bbmodel` is the same shape in Blockbench form if you want to edit
-it.
+seven-box model, so the thing in the tree actually looks like a camera. Those boxes are
+declared once in the generator and written out twice, as the model the game loads and as
+`models/camera.bbmodel`, so the file you open in Blockbench and the thing in the tree cannot
+drift apart.
+
+Rounds pass straight through them. They are invulnerable armour stands, and until recently
+that meant a camera in a tree silently ate your bullets.
 
 They will only place somewhere with something to bolt to: a ceiling, a trunk or a cave wall
 within reach. `/ledger camera` is the exception and will hang one in open air ahead of you
@@ -212,8 +223,11 @@ everyone present.
 
 ## Not built yet
 
-Nothing major. The Witness and the cow have been built but not yet watched running in a
-live world.
+The Witness and the cow have been built, and the Witness has since been made actually
+killable — its halo of twenty-four invulnerable armour stands used to absorb every round
+before it reached the core, so a hit anywhere on the halo is now moved onto the core and
+the boss's hitbox is the whole wheel of blocks you can see. Neither the fight nor the
+ending has been watched running in a live world yet, so treat that pair as untested.
 
 ## Art
 
@@ -238,7 +252,7 @@ icons look like a set instead of a pile.
 | Guns | 10 | One per barrel, since the barrel is what changes a gun's outline. Everything behind the muzzle is shared so the family reads as a family |
 | Parts | 60 | Each section's silhouette in that part's own colours, with a small distinguishing mark on top |
 | Menu buttons | 5 | Merge, reset, back, randomise, presets |
-| Camera | 1 | A three-part 3D model — shell, lens barrel, bracket — worn on the armour stand's head |
+| Camera | 1 | A seven-box 3D model — mount plate, arm, housing, lens barrel, lens, status light, antenna — worn on the armour stand's head |
 
 Only **three items** are registered (`ledger:gun`, `ledger:icon`, `ledger:camera`); the look
 is picked by a `custom_model_data` string, so the item definitions in
@@ -308,13 +322,37 @@ robot.mouseMove(x, y); robot.mousePress(BUTTON1_DOWN_MASK);           // click
 robot.keyPress(KeyEvent.VK_SLASH);                                    // type
 ```
 
-The helpers used were a `Grab` class for stills and a `Drive` class taking a small script
-like `click,638,356;wait,3500;type,ledger book;key,10;shot,out.png`.
+`tools/Drive.java` is that helper. It takes a small script and executes it against the live
+game:
 
-**4. Actually playing.** Clicked through the title screen, ticked *Allow Commands*, created
-a world, waited out worldgen, pressed `/` to open chat, typed `ledger book`, pressed Enter,
-then right-clicked to open the book — all through `Robot`, screenshotting between steps to
-find the next button.
+```
+click,638,355;wait,2500;cmd:guns;wait,2500;click,530,225;hold,3000;shot,out.png
+```
+
+`cmd:` opens chat with `/`, types the rest and presses Enter; `hold` holds right-click,
+which is how an automatic keeps firing.
+
+**4. The video, without a video tool.** There is no `ffmpeg` either, so the GIF at the top
+is made by two more small programs. `tools/Record.java` grabs the 854×480 viewport on a
+timer and writes downscaled frames; `tools/Gif.java` assembles them using the JDK's own GIF
+writer, which will do animation if you hand-build the metadata — a `GraphicControlExtension`
+for the frame delay and the NETSCAPE application extension for the loop.
+
+The one clever bit is that it drops frames that barely differ from the last one kept, with
+a cap on how many it will skip in a row. World loading takes a minute and a half of an
+almost-still screen; that collapses to a couple of frames, and the parts of the clip where
+something is happening keep every frame. 1,522 captured frames became 139.
+
+```bash
+java tools/Record.java frames 8 175          # 8 fps for 175 seconds
+java tools/Gif.java frames demo.gif 13 2.5 45 0.83
+```
+
+**5. Actually playing.** Clicked through the title screen, loaded the world, ran
+`/gamemode creative` and `/guns`, clicked each of the six sections and picked a part from
+each, hovered **MERGE INTO GUN** to show its real power and DPS, clicked it, selected the
+merged gun and held right-click — all through `Robot`, screenshotting between steps to find
+the next button.
 
 ### What this proved, and what it did not
 
