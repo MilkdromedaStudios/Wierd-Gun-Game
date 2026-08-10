@@ -233,11 +233,35 @@ camera somewhere implausible.
 At **10,000 interactions across the world** — everyone's mining counts toward the same
 tally — the record stops being a record and stands up.
 
-**THE WITNESS** is a halo of 24 invisible armour stands, each balancing one block on its
-head, orbiting an invisible core. The blocks it wears are taken from what players actually
-mined, so every Witness is assembled out of its own victims' habits. Four stages keyed to
-its health, each faster and angrier. Between attacks it reads your held item back to you by
-name — it does not threaten, it recites.
+**THE WITNESS** is a halo of invisible armour stands, each balancing one block on its head,
+orbiting an invisible core. The blocks it wears are taken from what players actually mined,
+so every Witness is assembled out of its own victims' habits.
+
+**Eight stages**, and the shape of the fight is borrowed from
+[Cracker's Wither Storm](https://www.curseforge.com/minecraft/mc-mods/crackers-wither-storm-mod):
+it does not just get angrier as its health drops, it gets **bigger**. Every stage welds
+another twelve blocks onto its body, widens the wheel, spins it faster and unlocks one more
+thing it can do to you. From stage three it stops waiting and starts tearing blocks out of
+the world — and every block it takes is welded on, so the longer the fight runs the larger
+the thing you are fighting and the emptier the ground under you.
+
+| Stage | It says | What unlocks |
+| --- | --- | --- |
+| 1 | *"I have finished counting."* | Pulls you in and hurts you |
+| 2 | *"You have been walking for a long time. I know exactly how far."* | **Tractor beam** — hauls you out of cover into the open |
+| 3 | *"You took these from the world. I am taking them back."* | **Devours terrain**, wearing what it eats |
+| 4 | *"I know what is in your hands right now."* | Wither. World fog closes in |
+| 5 | *"You did not think anyone was writing it down."* | Darkness and blindness |
+| 6 | *"Every block you have ever broken is somewhere on me."* | **Throws back what it took** — blasts around each player. Bar turns red |
+| 7 | *"There is nothing about you that I did not write down."* | Levitation and weakness — off your feet |
+| 8 | *"The record is the world now."* | Eats the ground you are standing on |
+
+It is worth **5,000 damage**, plus 1,500 for every player past the first. At the mod's own
+34 DPS cap that is around two and a half minutes of perfect uninterrupted fire, and it will
+not let you have that.
+
+Between attacks it remarks on what you are holding — quietly, every twelve seconds, never
+the same line twice in a row. It does not threaten. It recites.
 
 Kill it and it says *"The record is closed."*
 
@@ -247,11 +271,11 @@ everyone present.
 
 ## Not built yet
 
-**The Witness fight is not finished.** It summons, it hangs in the air wearing the blocks
-you mined, it recites your held item, it pulls you in and hurts you, and its boss bar goes
-down when you shoot it — all of that is on video. What does not work is killing it: damage
-lands intermittently rather than every round. Three real causes have been found and fixed
-along the way, and there is at least one left:
+**The Witness has not been killed on camera.** It summons, it hangs in the air wearing the
+blocks you mined, it climbs its stages, it recites your held item, it pulls you in and hurts
+you, and its bar goes down when you shoot it. What has not been watched end to end is a full
+kill — the fight is now five thousand damage long, and nothing has sat through all of it.
+Five real causes of damage going missing have been found and fixed along the way:
 
 - its halo of twenty-four invulnerable armour stands absorbed every round before it reached
   the core, so a hit anywhere on the halo is now moved onto the core — **fixed**
@@ -260,7 +284,14 @@ along the way, and there is at least one left:
 - with no gravity and no AI, nothing damped the knockback a gun applies, so each round it
   took shoved it further away until the fight was at the edge of render distance — its
   velocity is now cleared every tick — **fixed**
-- something still stops most rounds registering over a sustained burst — **open**
+- the health lived in the `max_health` attribute, which vanilla clamps — a magma cube will
+  not take more than about 150 however politely it is asked, so the stage maths divided by a
+  number the game had refused to grant and the fight opened on stage seven. The real pool
+  lives in the class now and the entity is only a damage sensor — **fixed**
+- topping that sensor back up each tick left vanilla's invulnerability window in place, so a
+  second hit of the same size inside a second was ignored outright. Guns clear that window
+  themselves, which is why they always worked and the `/damage` command did not — it is
+  cleared for everything now — **fixed**
 
 The cow ending works and is on video, but it is reached with `/ledger cow`, not by killing
 the boss.
