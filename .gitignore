@@ -23,3 +23,6 @@ run/
 # OS
 .DS_Store
 Thumbs.db
+
+# Stray dev-client logs written to the repo root
+/logs/

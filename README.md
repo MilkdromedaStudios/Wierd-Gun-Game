@@ -269,6 +269,28 @@ Then a cow wanders in. It has no boss bar, no glow, no name and no hostility, an
 ordinary cow in every respect the game can measure. About seven seconds later it kills
 everyone present.
 
+## When the world will not open
+
+If clicking **Play** goes black and drops you straight back to the world list, the
+integrated server threw while starting up or ticking. Minecraft does not show that as an
+error — it just shuts the server down and returns you to the lobby, which looks exactly
+like a broken button.
+
+The reason is always in the log. In a dev checkout that is `run/logs/latest.log`; in an
+installed client it is `.minecraft/logs/latest.log`, and there may be a matching file in
+`crash-reports/`. Search it for:
+
+```bash
+grep -nE "Exception|Ticking|Caused by" logs/latest.log | head -30
+```
+
+Ledger's own handlers can no longer do this to you. Everything this mod runs on the server
+tick thread goes through `Guard`, which catches anything thrown, logs it once with a stack
+trace naming the part that failed — `the Witness`, `the guns`, `the cameras`, `the cow`,
+`pulling the trigger`, `loading the record` — and lets the tick continue. A bug here costs
+a feature, not the world. If the log has no line starting `Ledger:`, the failure came from
+somewhere else.
+
 ## Not built yet
 
 **The Witness has not been killed on camera.** It summons, it hangs in the air wearing the

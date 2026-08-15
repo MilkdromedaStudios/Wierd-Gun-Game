@@ -1,5 +1,6 @@
 package com.milkdromeda.ledger.combat;
 
+import com.milkdromeda.ledger.Guard;
 import com.milkdromeda.ledger.Ledger;
 import com.milkdromeda.ledger.gun.FireMode;
 import com.milkdromeda.ledger.gun.GunBlueprint;
@@ -66,12 +67,13 @@ public final class GunController {
             if (!GunItem.isGun(held)) {
                 return InteractionResult.PASS;
             }
-            pullTrigger(shooter, held);
-            // Consume so the hoe underneath never tills anything.
+            Guard.run("pulling the trigger", () -> pullTrigger(shooter, held));
+            // Consume so nothing underneath acts on the click as well.
             return InteractionResult.SUCCESS;
         });
 
-        ServerTickEvents.END_SERVER_TICK.register(this::tick);
+        ServerTickEvents.END_SERVER_TICK.register(
+                server -> Guard.run("the guns", () -> tick(server)));
     }
 
     // ---------------------------------------------------------------- trigger

@@ -67,12 +67,16 @@ public final class Ledger implements ModInitializer {
         guns.register();
         cameras = new Cameras();
         cameras.register();
-        ServerTickEvents.END_SERVER_TICK.register(TheCow::tick);
-        ServerTickEvents.END_SERVER_TICK.register(server -> witness.tick(server));
+        // Everything below runs on the server tick thread, where an uncaught
+        // exception ends the world rather than the feature. See Guard.
+        ServerTickEvents.END_SERVER_TICK.register(
+                server -> Guard.run("the cow", () -> TheCow.tick(server)));
+        ServerTickEvents.END_SERVER_TICK.register(
+                server -> Guard.run("the Witness", () -> witness.tick(server)));
 
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> Guard.run("loading the record", () -> {
             watch.load(server);
             LOGGER.info("Ledger is open. Everything from here is recorded.");
-        });
+        }));
     }
 }

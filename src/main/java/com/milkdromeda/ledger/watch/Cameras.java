@@ -1,5 +1,6 @@
 package com.milkdromeda.ledger.watch;
 
+import com.milkdromeda.ledger.Guard;
 import com.milkdromeda.ledger.item.LedgerItems;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.BlockPos;
@@ -57,7 +58,8 @@ public final class Cameras {
     private int tick;
 
     public void register() {
-        ServerTickEvents.END_SERVER_TICK.register(this::tick);
+        ServerTickEvents.END_SERVER_TICK.register(
+                server -> Guard.run("the cameras", () -> tick(server)));
     }
 
     private void tick(MinecraftServer server) {
